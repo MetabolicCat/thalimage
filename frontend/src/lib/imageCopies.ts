@@ -1,4 +1,4 @@
-import type { ImageCopy, ImageDeletion } from './types';
+import type { ImageCopy, ImageDeletion, SourceMove } from './types';
 
 /** The copy's full path on the server. */
 export function copyPath(copy: ImageCopy): string {
@@ -25,6 +25,16 @@ export function deletionFailures(result: ImageDeletion): string {
 	if (result.failed.length === 0) return '';
 	return (
 		`Deleted ${result.deleted}; these could not be deleted: ` +
+		result.failed.map((f) => `${f.relative_path} (${f.error})`).join(', ')
+	);
+}
+
+/** The files a move to another source left behind, and why; empty when every
+ * file moved. */
+export function moveFailures(result: SourceMove): string {
+	if (result.failed.length === 0) return '';
+	return (
+		`Moved ${result.moved.length + result.deleted.length}; these could not be moved: ` +
 		result.failed.map((f) => `${f.relative_path} (${f.error})`).join(', ')
 	);
 }

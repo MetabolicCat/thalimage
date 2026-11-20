@@ -285,6 +285,17 @@ export interface ImageDeletion {
 	failed: { source_id: number; relative_path: string; error: string }[];
 }
 
+/** What moving files to another source did: `moved` took their places there,
+ * `deleted` were copies the target already held, `sidecars` left the source
+ * with their files, and `kept_sidecars` stayed where another file names them. */
+export interface SourceMove {
+	moved: string[];
+	deleted: string[];
+	sidecars: string[];
+	kept_sidecars: string[];
+	failed: { relative_path: string; error: string }[];
+}
+
 /** What merging images did: `merged` are the images merged, one whose files
  * could not all be removed being left out. */
 export interface ImageMerge extends ImageDeletion {
