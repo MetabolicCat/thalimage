@@ -6,3 +6,12 @@ export function isVideoFilename(filename: string): boolean {
 	const dot = filename.lastIndexOf('.');
 	return dot >= 0 && VIDEO_EXTENSIONS.has(filename.slice(dot).toLowerCase());
 }
+
+/**
+ * Whether a filename is a GIF. The viewer sends these whole rather than as a
+ * WebP preview, because the preview would show only the first frame.
+ */
+export function isGifFilename(filename: string): boolean {
+	const dot = filename.lastIndexOf('.');
+	return dot >= 0 && filename.slice(dot).toLowerCase() === '.gif';
+}

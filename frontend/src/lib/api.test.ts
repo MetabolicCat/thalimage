@@ -4,6 +4,7 @@ import {
 	mergeImages,
 	deleteSource,
 	displaySize,
+	displayUrl,
 	getEloPair,
 	getEloRankings,
 	listingQuery,
@@ -77,6 +78,16 @@ describe('displaySize', () => {
 	it('never asks for more than the largest preview (GEN-004)', () => {
 		screen(1512, 982, 2);
 		expect(displaySize()).toBe(2560);
+	});
+});
+
+describe('displayUrl', () => {
+	it('sends a GIF whole so it animates', () => {
+		expect(displayUrl('abc', 'a.gif')).toBe('/api/v1/images/abc/file');
+	});
+
+	it('uses a display-sized preview for other stills', () => {
+		expect(displayUrl('abc', 'a.png', 1280)).toBe('/api/v1/images/abc/preview?size=1280');
 	});
 });
 

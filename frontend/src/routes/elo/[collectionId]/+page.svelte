@@ -2,7 +2,7 @@
 	import { untrack } from 'svelte';
 	import { page } from '$app/stores';
 	import { goto } from '$app/navigation';
-	import { getCollection, previewUrl, thumbUrl } from '$lib/api';
+	import { displayUrl, getCollection, thumbUrl } from '$lib/api';
 	import { eloCutLabel } from '$lib/eloCut';
 	import { EloRound } from '$lib/eloRound.svelte';
 	import { collectionFiltersKey } from '$lib/gallery.svelte';
@@ -26,7 +26,9 @@
 		const img = new Image();
 		// Videos render from their thumbnail poster; warm that rather than fetching
 		// the full video file through an <img>.
-		img.src = isVideoFilename(item.filename) ? thumbUrl(item.content_hash) : previewUrl(item.content_hash);
+		img.src = isVideoFilename(item.filename)
+			? thumbUrl(item.content_hash)
+			: displayUrl(item.content_hash, item.filename);
 	}
 
 	function onKeydown(e: KeyboardEvent) {

@@ -6,7 +6,7 @@ get depends on where you are looking.
 | Where | What is sent |
 |---|---|
 | Gallery grid | Thumbnail — WebP, 400px long edge |
-| Viewer, slideshow, voting | Preview — WebP, capped at your screen size |
+| Viewer, slideshow, voting | Preview — WebP, capped at your screen size; a GIF is sent whole so it animates |
 | Video playback | The original file, streamed, or a copy iOS can play |
 
 ## Why previews exist
@@ -19,6 +19,13 @@ show. Over wifi, that is the difference between an image appearing
 instantly and waiting several seconds for it.
 
 A preview of that 36.6 MB PNG is 73 KB.
+
+## Animated GIFs
+
+A thumbnail or WebP preview of a GIF is a single frame, so the viewer,
+slideshow, voting and comparison views load the original GIF instead and
+it animates. The gallery keeps the still thumbnail, and GIFs are not
+downscaled on the way to those views.
 
 ## How previews are made
 
