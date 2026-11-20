@@ -3,6 +3,7 @@
 	import { listSources, createSource, deleteSource, triggerScan, subscribeScanProgress, getVersion, getSourceSummary, updateSource } from '$lib/api';
 	import { collectionsStore, settingsStore } from '$lib/stores';
 	import { scanDoneMessage } from '$lib/scanStatus';
+	import { returnToHref } from '$lib/settingsLink';
 	import BackupSettings from '$lib/components/BackupSettings.svelte';
 	import ConfirmDialog from '$lib/components/ConfirmDialog.svelte';
 	import SourceBreakdown from '$lib/components/SourceBreakdown.svelte';
@@ -27,7 +28,7 @@
 		buildCommit !== null && backendCommit !== null && backendCommit !== buildCommit
 	);
 
-	const backHref = $derived($page.url.searchParams.get('returnTo') || '/');
+	const backHref = $derived(returnToHref($page.url));
 
 	async function refresh() {
 		sources = await listSources();
