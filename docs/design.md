@@ -187,6 +187,38 @@ variation (same prompt, another seed), and unrelated.
   deleted only when identical, else left as an orphan, so no sidecar
   content is lost.
 
+## Moving files between sources
+
+- **A move keeps the file's relative path** under the target source
+  (#180). Generated pictures sit in a folder or two per source, so
+  keeping the path keeps the collection's shape without a picker for
+  the destination folder; flat moving into the root would mix folders
+  whose names say what the file is. Folders are not browsing
+  structure (above), so the folder tags follow the file either way.
+- **The action lives in a source preset only.** Everywhere else several
+  sources can hold the selection, and "which copy moves" would need its
+  own question; in a preset the source is what is browsed.
+- **Both ends must be writable.** The target has to accept a new file
+  and the source loses one; refusing when either is read-only keeps the
+  rule users know, that a read-only source is never written to or
+  changed, in both directions.
+- **A name the target uses is resolved as a rename resolves it**
+  (above): the copy is redundant, and deleted, when the target holds the
+  image there already, and otherwise takes the picture hash as its name;
+  when that is taken too the move is refused. Overwriting, or moving
+  into a suffixed name (`cat (1).png`), was rejected: the first loses a
+  file, the second cannot be undone by the eye.
+- **Across filesystems the file is copied under a temporary name, put
+  in place, and only then removed** from the source. `shutil.move`
+  writes under the real name, so a copy that dies halfway leaves a
+  broken file where the index expects a picture; a source on the NAS
+  beside one on local disk makes this the normal path, not the rare
+  one. A copy that fails leaves the source file untouched.
+- **Moving is not restricted to keeping a copy**: an image always has
+  its file afterwards, in the target, so nothing is ever marked deleted
+  by a move. A move that fails per file is reported and the rest still
+  move, as a rename's failures are.
+
 ## Deployment
 
 - **Tailnet only.** The app runs on a Tailscale sidecar's network

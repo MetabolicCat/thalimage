@@ -7,7 +7,7 @@ parameter .txt, ComfyUI's workflow .json.
 """
 
 import hashlib
-from pathlib import Path
+from pathlib import Path, PurePath
 
 from thalimage.core.scanner import is_media
 
@@ -39,6 +39,15 @@ def claimed(sidecar: Path) -> bool:
 def names_any(sidecar: Path, media: list[Path]) -> bool:
     """Whether one of the media files is named the way the sidecar is."""
     return any(sidecar.stem in (p.stem, p.name) for p in media)
+
+
+def renamed_for(media: Path, sidecar: Path, name: str) -> str:
+    """The sidecar's name when its media file takes `name`: one named after
+    the whole file name ("img.png.json") follows that name, one named after
+    its stem ("img.txt") follows the new stem."""
+    if sidecar.stem == media.name:
+        return name + sidecar.name[len(media.name):]
+    return PurePath(name).stem + sidecar.name[len(media.stem):]
 
 
 def digest(path: Path) -> str:

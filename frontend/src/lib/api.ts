@@ -10,6 +10,7 @@ import type {
 	SidecarContent,
 	EloStanding,
 	Source,
+	SourceMove,
 	Collection,
 	Tag,
 	PossibleEditDecision,
@@ -306,6 +307,20 @@ export function deleteCopies(
 		method: 'POST',
 		headers: { 'Content-Type': 'application/json' },
 		body: JSON.stringify({ paths })
+	});
+}
+
+/** Move files of one source into another source's folder, keeping their paths.
+ * Refused as a whole if any of them may not be moved. */
+export function moveCopies(
+	sourceId: number,
+	toSourceId: number,
+	paths: string[]
+): Promise<SourceMove> {
+	return fetchJSON(`${BASE}/sources/${sourceId}/move-copies`, {
+		method: 'POST',
+		headers: { 'Content-Type': 'application/json' },
+		body: JSON.stringify({ to_source_id: toSourceId, paths })
 	});
 }
 

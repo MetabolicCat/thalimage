@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { copyPath, deletionFailures, hashNamed, readOnlySources } from './imageCopies';
+import { copyPath, deletionFailures, hashNamed, moveFailures, readOnlySources } from './imageCopies';
 
 const copy = (source_path: string, relative_path: string, writable = true) => ({
 	source_id: source_path.length,
@@ -59,6 +59,26 @@ describe('deletionFailures', () => {
 		];
 		expect(deletionFailures({ deleted: 3, sidecars: 0, failed })).toBe(
 			'Deleted 3; these could not be deleted: a.png (Permission denied), b.png (Busy)'
+		);
+	});
+});
+
+describe('moveFailures', () => {
+	const moved = (failed: { relative_path: string; error: string }[]) => ({
+		moved: ['a.png'],
+		deleted: [],
+		sidecars: [],
+		kept_sidecars: [],
+		failed
+	});
+
+	it('is empty when every file moved', () => {
+		expect(moveFailures(moved([]))).toBe('');
+	});
+
+	it('names each file that stayed, with its error', () => {
+		expect(moveFailures(moved([{ relative_path: 'b.jpg', error: 'Permission denied' }]))).toBe(
+			'Moved 1; these could not be moved: b.jpg (Permission denied)'
 		);
 	});
 });

@@ -181,6 +181,7 @@
 		selection={gallery.selection}
 		archived={filters.archived ?? false}
 		collectionId={collection?.type === 'manual' ? collection.id : undefined}
+		sourceId={collection?.type === 'source_preset' ? collection.source_id ?? undefined : undefined}
 		ondone={() => gallery.reset()}
 	/>
 {/if}

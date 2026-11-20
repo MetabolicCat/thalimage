@@ -11,7 +11,7 @@ import sqlite3
 from dataclasses import dataclass, field
 from pathlib import Path, PurePath
 
-from thalimage.core.sidecars import claimed, digest, sidecars_of
+from thalimage.core.sidecars import claimed, digest, renamed_for, sidecars_of
 from thalimage.services.file_changes import change_file, record_change, writable_root
 from thalimage.services.file_deletion import image_copies, remove_copy
 from thalimage.services.scan_service import unchanged_since_scan
@@ -176,12 +176,7 @@ def _follow(
 ) -> None:
     """Give a sidecar its file's new name. One whose new name is taken is
     deleted if it says the same as the file there, else left in place."""
-    # "img.png.json" is named after the whole file name, "img.txt" after its stem.
-    renamed = PurePath(t.target)
-    if sidecar.stem == media.name:
-        new_name = renamed.name + sidecar.name[len(media.name):]
-    else:
-        new_name = renamed.stem + sidecar.name[len(media.stem):]
+    new_name = renamed_for(media, sidecar, PurePath(t.target).name)
     path = str(sidecar.relative_to(t.root))
     target = str(PurePath(path).with_name(new_name))
 
