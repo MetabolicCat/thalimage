@@ -28,6 +28,13 @@ The bar that appears while selecting offers:
   already in it stay as they are.
 - **Remove from collection**, in a collection you curated: the images
   leave this collection only; their tags and scores elsewhere are kept.
+- **Move to source**, in a source preset: pick another writable source,
+  and the selected images' files in this source move into its folder,
+  with their sidecars, after a confirmation that lists the paths they
+  take. Both sources must be writable. The images are the same where
+  they lie, so their tags, scores, votes and collections are kept. A
+  file that cannot be moved is reported, and the others still move;
+  *Moving files to another source* describes the rules in full.
 - **Delete from disk…**: every copy of every selected image, with their
   sidecars, after a confirmation that lists each file. It follows the
   rules of deleting one image, described in *Scanning*: if any image

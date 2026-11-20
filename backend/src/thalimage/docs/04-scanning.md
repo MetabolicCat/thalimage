@@ -316,6 +316,35 @@ There are two ways to rename:
 Every rename is recorded with the other changes Thalimage makes to files
 (see below).
 
+## Moving files to another source
+
+**Move to source** in the selection bar, in a source preset, moves the
+selected images' files from that source into another source's folder,
+with their sidecars. Each file keeps its path below the source folder:
+`sub/cat.png` becomes `sub/cat.png` in the target, its folder created
+if the target has none. Folders are not sources, so the file's folder
+tags change with its location.
+
+Both sources must be writable, and no moved file may have changed since
+the last scan; one that fails either check refuses the whole move before
+anything is moved. A name the target already uses is handled as a rename
+is: when the target already holds this image under that name, the file
+there is the copy kept and the one moving is deleted instead of moved;
+otherwise the moving file takes the image's picture hash as its name. A
+target that uses that name too refuses the move. A sidecar goes along;
+one that another file in the source folder is named after stays, and one
+whose name is taken in the target is deleted when it says the same as
+the file there, kept as an orphan otherwise.
+
+A move is one change per file: a file that cannot be moved is named
+with the reason and the others still move. The image is the same
+wherever it lies, so its tags, scores, votes and collections are
+unaffected; only the collection preset it shows in changes. The
+index is updated with the move, so no rescan is needed, and each move
+is recorded with the other changes Thalimage makes to files (see
+below). Nothing already in the target's folder is overwritten or
+removed.
+
 ## Read-only and writable sources
 
 A source is read-only unless you mark it writable, when adding it or
@@ -324,8 +353,9 @@ anything in a read-only source. Marking a source writable first checks
 that its folder accepts writes (by creating and removing a temporary
 file), and is refused if it does not, e.g. when it is mounted read-only.
 Every change Thalimage then makes to files is recorded in the database
-(`file_changes`: what, where, when, and whether it worked), and the
-record is kept even after the source is removed.
+(`file_changes`: what, where, when, and whether it worked, the source a
+move came from and the one it went to), and the record is kept even
+after the sources are removed.
 
 ## Removing a source
 
