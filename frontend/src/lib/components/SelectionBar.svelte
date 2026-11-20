@@ -312,6 +312,7 @@
 		to={moving.to}
 		copies={moving.copies}
 		message={moving.message}
+		{busy}
 		onconfirm={confirmMove}
 		oncancel={() => (moving = null)}
 	/>

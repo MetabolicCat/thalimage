@@ -5,14 +5,18 @@
 	 * A modal asking to confirm an action. Cancel has the focus, so Enter or
 	 * Escape never confirms by accident; `danger` styles the confirm button
 	 * for actions that cannot be undone. With `canConfirm` false the dialog
-	 * only explains why the action is not possible.
+	 * only explains why the action is not possible. While `busy`, the action
+	 * is under way: both buttons wait, so it cannot be started twice, and the
+	 * confirm button says so.
 	 */
 	let {
 		open,
 		title,
 		confirmLabel,
+		busyLabel = 'Working…',
 		danger = false,
 		canConfirm = true,
+		busy = false,
 		onconfirm,
 		oncancel,
 		children
@@ -20,8 +24,10 @@
 		open: boolean;
 		title: string;
 		confirmLabel: string;
+		busyLabel?: string;
 		danger?: boolean;
 		canConfirm?: boolean;
+		busy?: boolean;
 		onconfirm: () => void;
 		oncancel: () => void;
 		children: Snippet;
@@ -34,17 +40,28 @@
 		if (open && !dialog.open) dialog.showModal();
 		if (!open && dialog.open) dialog.close();
 	});
+
+	/** Escape asks to cancel; while the action runs it leaves the dialog up,
+	 * since the request cannot be withdrawn. */
+	function onNativeCancel(event: Event) {
+		event.preventDefault();
+		if (!busy) oncancel();
+	}
 </script>
 
-<dialog bind:this={dialog} oncancel={(e) => (e.preventDefault(), oncancel())} aria-labelledby="confirm-title">
+<dialog bind:this={dialog} oncancel={onNativeCancel} aria-labelledby="confirm-title">
 	<h3 id="confirm-title">{title}</h3>
-	<div class="body">{@render children()}</div>
+	<div class="body" aria-busy={busy}>{@render children()}</div>
 	<div class="actions">
 		<!-- svelte-ignore a11y_autofocus -->
-		<button class="control" autofocus onclick={oncancel}>Cancel</button>
+		<button class="control" autofocus onclick={oncancel} disabled={busy}>Cancel</button>
 		{#if canConfirm}
-			<button class="control {danger ? 'control-danger' : 'control-primary'}" onclick={onconfirm}>
-				{confirmLabel}
+			<button
+				class="control {danger ? 'control-danger' : 'control-primary'}"
+				onclick={onconfirm}
+				disabled={busy}
+			>
+				{busy ? busyLabel : confirmLabel}
 			</button>
 		{/if}
 	</div>

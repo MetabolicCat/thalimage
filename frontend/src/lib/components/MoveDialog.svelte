@@ -7,18 +7,21 @@
 	/**
 	 * Confirms moving files into another source's folder: lists each file with
 	 * the path it takes there, and its sidecars. `message` reports what went
-	 * wrong last time.
+	 * wrong last time; while `busy` the move is under way and the dialog says
+	 * so.
 	 */
 	let {
 		to,
 		copies,
 		message,
+		busy = false,
 		onconfirm,
 		oncancel
 	}: {
 		to: Source;
 		copies: ImageCopy[];
 		message: string;
+		busy?: boolean;
 		onconfirm: () => void;
 		oncancel: () => void;
 	} = $props();
@@ -35,14 +38,27 @@
 
 <ConfirmDialog
 	open
-	title={one ? `Move this file to ${sourceName(to)}?` : `Move ${files} files to ${sourceName(to)}?`}
+	title={busy
+		? `Moving ${one ? 'the file' : `${files} files`} to ${sourceName(to)}…`
+		: one
+			? `Move this file to ${sourceName(to)}?`
+			: `Move ${files} files to ${sourceName(to)}?`}
 	confirmLabel="Move {files} {one ? 'file' : 'files'}"
+	busyLabel="Moving…"
 	canConfirm={files > 0}
+	{busy}
 	{onconfirm}
 	{oncancel}
 >
 	{#if message}
 		<p class="confirm-message">{message}</p>
+	{/if}
+	{#if busy}
+		<p class="progress">
+			<span class="spinner" aria-hidden="true"></span>
+			Moving {one ? 'the file' : `${files} files`}, with their sidecars. This can take a while for large
+			files.
+		</p>
 	{/if}
 	<p>
 		Each file keeps its path under the target's folder, and stays the same image there: its
@@ -71,6 +87,29 @@
 
 	.file-note {
 		color: #888;
+	}
+
+	.progress {
+		display: flex;
+		align-items: center;
+		gap: 8px;
+		margin: 0 0 8px;
+	}
+
+	.spinner {
+		flex: none;
+		width: 14px;
+		height: 14px;
+		border: 2px solid rgba(255, 255, 255, 0.25);
+		border-top-color: rgba(255, 255, 255, 0.85);
+		border-radius: 50%;
+		animation: spin 0.8s linear infinite;
+	}
+
+	@keyframes spin {
+		to {
+			transform: rotate(360deg);
+		}
 	}
 
 	.file-list {
