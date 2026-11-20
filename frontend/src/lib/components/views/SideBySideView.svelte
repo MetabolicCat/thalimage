@@ -24,7 +24,13 @@
 
 {#snippet panel(item: ImageSummary, selected: boolean, onSelect?: () => void, onArchive?: () => void)}
 	<div class="slot">
-		<ImagePanel hash={item.content_hash} filename={item.filename} {selected} onclick={onSelect} />
+		<ImagePanel
+			hash={item.content_hash}
+			filename={item.filename}
+			animated={item.animated}
+			{selected}
+			onclick={onSelect}
+		/>
 		{#if onArchive}
 			<button class="archive" type="button" title="Archive this image and skip the pair" aria-label="Archive" onclick={onArchive}>
 				<Icon name="archive" size={18} />

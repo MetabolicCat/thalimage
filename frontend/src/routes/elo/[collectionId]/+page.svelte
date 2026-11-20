@@ -28,7 +28,7 @@
 		// the full video file through an <img>.
 		img.src = isVideoFilename(item.filename)
 			? thumbUrl(item.content_hash)
-			: displayUrl(item.content_hash, item.filename);
+			: displayUrl(item.content_hash, item.filename, item.animated);
 	}
 
 	function onKeydown(e: KeyboardEvent) {

@@ -135,6 +135,8 @@ def untag_images(conn: sqlite3.Connection, tag_id: int, hashes: list[str]) -> in
 
 class ImageLabels(BaseModel):
     content_hash: str
+    filename: str
+    animated: bool = False
     labels: list[str]
 
 
@@ -145,7 +147,7 @@ def collection_labels(
     with its tags named `<namespace>:<value>` in one of `namespaces`."""
     prefixes = tuple(f"{n}:" for n in namespaces)
     rows = conn.execute(
-        """SELECT ci.content_hash, t.name
+        """SELECT ci.content_hash, i.filename, i.animated, t.name
            FROM collection_images ci
            JOIN images i ON i.content_hash = ci.content_hash AND i.deleted = 0
            LEFT JOIN image_tags it ON it.image_hash = ci.content_hash
@@ -154,9 +156,16 @@ def collection_labels(
            ORDER BY ci.rowid, t.name""",
         (collection_id,),
     ).fetchall()
-    out: dict[str, list[str]] = {}
-    for content_hash, name in rows:
-        labels = out.setdefault(content_hash, [])
+    out: dict[str, ImageLabels] = {}
+    for content_hash, filename, animated, name in rows:
+        image = out.get(content_hash)
+        if image is None:
+            image = out[content_hash] = ImageLabels(
+                content_hash=content_hash,
+                filename=filename,
+                animated=bool(animated),
+                labels=[],
+            )
         if name is not None and name.startswith(prefixes):
-            labels.append(name)
-    return [ImageLabels(content_hash=h, labels=names) for h, names in out.items()]
+            image.labels.append(name)
+    return list(out.values())

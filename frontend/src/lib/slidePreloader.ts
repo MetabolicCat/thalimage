@@ -2,9 +2,9 @@ import { displayUrl } from './api';
 import { isVideoFilename } from './media';
 import type { SequenceItem } from './types';
 
-function loadDisplay(hash: string, filename: string): HTMLImageElement {
+function loadDisplay(hash: string, filename: string, animated: boolean): HTMLImageElement {
 	const img = new Image();
-	img.src = displayUrl(hash, filename);
+	img.src = displayUrl(hash, filename, animated);
 	return img;
 }
 
@@ -13,14 +13,16 @@ function loadDisplay(hash: string, filename: string): HTMLImageElement {
  * rest. Videos are skipped — their full files are too large to prefetch
  * eagerly. */
 export function createSlidePreloader(
-	load: (hash: string, filename: string) => unknown = loadDisplay
+	load: (hash: string, filename: string, animated: boolean) => unknown = loadDisplay
 ) {
 	let held = new Map<string, unknown>();
-	return function keep(slides: Pick<SequenceItem, 'content_hash' | 'filename'>[]): void {
+	return function keep(
+		slides: Pick<SequenceItem, 'content_hash' | 'filename' | 'animated'>[]
+	): void {
 		const next = new Map<string, unknown>();
-		for (const { content_hash: hash, filename } of slides) {
+		for (const { content_hash: hash, filename, animated } of slides) {
 			if (isVideoFilename(filename)) continue;
-			next.set(hash, held.has(hash) ? held.get(hash) : load(hash, filename));
+			next.set(hash, held.has(hash) ? held.get(hash) : load(hash, filename, animated));
 		}
 		held = next;
 	};

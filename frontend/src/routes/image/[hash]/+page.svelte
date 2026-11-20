@@ -519,6 +519,7 @@
 			<ImageViewer
 				hash={image.content_hash}
 				filename={image.filename}
+				animated={image.animated}
 				loop={false}
 				bind:videoEl
 			/>
@@ -641,6 +642,7 @@
 				<ImageViewer
 					hash={image.content_hash}
 					filename={image.filename}
+					animated={image.animated}
 					loop={videoLoop}
 					bind:videoEl
 					onloaded={(hash) => (shownHash = hash)}

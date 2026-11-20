@@ -6,11 +6,13 @@
 	let {
 		hash,
 		filename,
+		animated = false,
 		selected = false,
 		onclick
 	}: {
 		hash: string;
 		filename: string;
+		animated?: boolean;
 		selected?: boolean;
 		onclick?: () => void;
 	} = $props();
@@ -59,7 +61,7 @@
 	{:else}
 		<img
 			bind:this={imgEl}
-			src={displayUrl(hash, filename)}
+			src={displayUrl(hash, filename, animated)}
 			alt={filename}
 			onload={() => (loaded = true)}
 			onerror={() => (loaded = true)}
