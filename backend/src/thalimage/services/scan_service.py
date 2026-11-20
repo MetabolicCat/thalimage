@@ -15,7 +15,7 @@ from pydantic import BaseModel
 
 from thalimage.core.derived_files import DerivedDirs, link_derived, remove_derived
 from thalimage.core.hasher import content_hash
-from thalimage.core.metadata import EXTRACTOR_VERSION, ImageMetadata, extract_metadata
+from thalimage.core.metadata import ANIMATION_VERSION, EXTRACTOR_VERSION, ImageMetadata, extract_metadata
 from thalimage.core.perceptual_hash import PERCEPTUAL_HASH_VERSION, perceptual_hash
 from thalimage.core.picture_hash import HASH_VERSION, picture_hash
 from thalimage.core.scanner import Listing, SourceUnavailable, scan_directory
@@ -76,6 +76,7 @@ class _Indexed:
     height: int
     aspect_ratio: float
     format: str
+    animated: bool
     meta: Optional[ImageMetadata]  # None for videos: no AI metadata
     perceptual_hash: Optional[int]  # None for videos
     # The file is unchanged since the last scan, which keyed it with an
@@ -126,7 +127,8 @@ def run_scan(
         for row in conn.execute(
             "SELECT l.content_hash, l.relative_path, l.file_modified, l.file_size, l.hash_version,"
             " COALESCE(m.extractor_version, 0) AS extractor_version,"
-            " COALESCE(i.perceptual_hash_version, 0) AS perceptual_hash_version"
+            " COALESCE(i.perceptual_hash_version, 0) AS perceptual_hash_version,"
+            " COALESCE(i.animation_version, 0) AS animation_version"
             " FROM image_locations l"
             " LEFT JOIN file_metadata m ON m.file_hash = l.file_hash"
             " LEFT JOIN images i ON i.content_hash = l.content_hash"
@@ -171,6 +173,7 @@ def run_scan(
                 and unchanged["extractor_version"] >= EXTRACTOR_VERSION
                 and unchanged["hash_version"] >= HASH_VERSION
                 and unchanged["perceptual_hash_version"] >= PERCEPTUAL_HASH_VERSION
+                and unchanged["animation_version"] >= ANIMATION_VERSION
             ):
                 kept.add(relative)
                 result.skipped += 1
@@ -396,6 +399,7 @@ def _index_file(
         link_derived(dirs, rekey_from, h)
 
     meta: Optional[ImageMetadata]
+    animated = False
     if is_video(file_path):
         if not ffmpeg_available():
             raise _SkipFile("ffmpeg not available")
@@ -412,6 +416,7 @@ def _index_file(
         width, height = meta.file_info.width, meta.file_info.height
         aspect = meta.file_info.aspect_ratio
         fmt = meta.file_info.format
+        animated = meta.file_info.animated
         perceptual = perceptual_hash(file_path)
 
     return _Indexed(
@@ -426,6 +431,7 @@ def _index_file(
         height=height,
         aspect_ratio=aspect,
         format=fmt,
+        animated=animated,
         meta=meta,
         perceptual_hash=perceptual,
         rekey=rekey_from is not None,
@@ -487,22 +493,25 @@ def _upsert_image(conn: sqlite3.Connection, source_id: int, item: _Indexed) -> N
     conn.execute(
         """INSERT INTO images
            (content_hash, filename, source_id, relative_path,
-            file_size, width, height, aspect_ratio, format,
-            file_modified, file_created, thumb_generated,
+            file_size, width, height, aspect_ratio, format, animated,
+            animation_version, file_modified, file_created, thumb_generated,
             perceptual_hash, perceptual_hash_version)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?)
            ON CONFLICT(content_hash) DO UPDATE SET
             width=excluded.width,
             height=excluded.height,
             aspect_ratio=excluded.aspect_ratio,
             format=excluded.format,
+            animated=excluded.animated,
+            animation_version=excluded.animation_version,
             thumb_generated=1,
             perceptual_hash=excluded.perceptual_hash,
             perceptual_hash_version=excluded.perceptual_hash_version
         """,
         (item.content_hash, item.filename, source_id, item.relative_path,
          item.file_size, item.width, item.height, item.aspect_ratio, item.format,
-         item.file_modified, item.file_created, item.perceptual_hash, PERCEPTUAL_HASH_VERSION),
+         item.animated, ANIMATION_VERSION, item.file_modified, item.file_created,
+         item.perceptual_hash, PERCEPTUAL_HASH_VERSION),
     )
 
 

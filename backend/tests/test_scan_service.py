@@ -568,6 +568,42 @@ def test_a_video_has_no_perceptual_hash_and_is_not_read_again(
     conn.close()
 
 
+def test_scan_records_animation_and_rereads_only_gifs(tmp_path: Path) -> None:
+    conn, img_dir, source_id, thumbs = _scan_setup(tmp_path)
+    frames = [Image.new("RGB", (8, 8), color) for color in ("red", "blue")]
+    frames[0].save(
+        img_dir / "loop.gif",
+        format="GIF",
+        save_all=True,
+        append_images=frames[1:],
+        duration=100,
+        loop=0,
+    )
+    Image.new("RGB", (8, 8), "green").save(img_dir / "still.gif", format="GIF")
+    Image.new("RGB", (8, 8), "white").save(img_dir / "still.png")
+
+    run_scan(conn, source_id, thumbs)
+
+    animated = {
+        row["filename"]: row["animated"]
+        for row in conn.execute("SELECT filename, animated FROM images")
+    }
+    assert animated == {"loop.gif": 1, "still.gif": 0, "still.png": 0}
+
+    # As a scan before animation detection left the GIFs.
+    conn.execute("UPDATE images SET animated = 0, animation_version = 0 WHERE format = 'GIF'")
+    conn.commit()
+    again = run_scan(conn, source_id, thumbs)
+    assert (again.added, again.skipped) == (2, 1)
+    assert conn.execute(
+        "SELECT animated FROM images WHERE filename = 'loop.gif'"
+    ).fetchone()[0] == 1
+
+    settled = run_scan(conn, source_id, thumbs)
+    assert (settled.added, settled.skipped) == (0, 3)
+    conn.close()
+
+
 def test_images_scanned_before_the_perceptual_hash_get_one_once(tmp_path: Path) -> None:
     conn, img_dir, source_id, thumbs = _scan_setup(tmp_path)
     Image.effect_mandelbrot((64, 64), (-2, -1.5, 1, 1.5), 50).save(img_dir / "a.png")

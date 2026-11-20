@@ -22,6 +22,9 @@ class ImageFileInfo(BaseModel):
     aspect_ratio: float
     modified: float
     created: Optional[float] = None
+    # Whether the file holds more than one frame (GIF, APNG, animated WebP,
+    # multi-page TIFF). Read with the header, so it costs no extra open.
+    animated: bool = False
 
 
 class AIParameters(BaseModel):
@@ -48,6 +51,11 @@ _parser_manager = ParserManager()
 # 1: AI parameters read from sd-parsers' actual PromptInfo attributes.
 # 2: keywords and star rating.
 EXTRACTOR_VERSION = 2
+
+# Bump when animation detection changes in a way existing rows should pick
+# up: a scan re-reads images whose animation_version is older. 1: GIFs only;
+# migration 027 marks every other format current.
+ANIMATION_VERSION = 1
 
 
 def extract_metadata(image_path: Path) -> ImageMetadata:
@@ -80,6 +88,7 @@ def _extract_file_info(image_path: Path) -> ImageFileInfo:
             aspect_ratio=img.width / img.height if img.height > 0 else 1.0,
             modified=stat.st_mtime,
             created=getattr(stat, "st_birthtime", None),
+            animated=bool(getattr(img, "is_animated", False)),
         )
 
 

@@ -50,6 +50,24 @@ def test_extract_returns_pydantic_models(sample_png: Path) -> None:
     assert isinstance(result.file_info, BaseModel)
 
 
+def _gif(path: Path, *, frames: int) -> Path:
+    images = [Image.new("RGB", (8, 8), color) for color in ("red", "blue", "green")][:frames]
+    images[0].save(
+        path,
+        format="GIF",
+        save_all=frames > 1,
+        append_images=images[1:],
+        duration=100,
+        loop=0,
+    )
+    return path
+
+
+def test_extract_marks_animated_and_static_gifs(tmp_path: Path) -> None:
+    assert extract_metadata(_gif(tmp_path / "loop.gif", frames=2)).file_info.animated is True
+    assert extract_metadata(_gif(tmp_path / "still.gif", frames=1)).file_info.animated is False
+
+
 # --- TST-003: extraction from real generator metadata ---
 
 A1111_PARAMETERS = (
