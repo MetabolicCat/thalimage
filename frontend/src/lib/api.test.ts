@@ -86,8 +86,12 @@ describe('displayUrl', () => {
 		expect(displayUrl('abc', 'a.gif')).toBe('/api/v1/images/abc/file');
 	});
 
+	it('sends any image detected as animated whole', () => {
+		expect(displayUrl('abc', 'a.webp', true)).toBe('/api/v1/images/abc/file');
+	});
+
 	it('uses a display-sized preview for other stills', () => {
-		expect(displayUrl('abc', 'a.png', 1280)).toBe('/api/v1/images/abc/preview?size=1280');
+		expect(displayUrl('abc', 'a.png', false, 1280)).toBe('/api/v1/images/abc/preview?size=1280');
 	});
 });
 

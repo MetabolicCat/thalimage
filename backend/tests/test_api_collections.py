@@ -218,8 +218,10 @@ def test_labels_lists_each_image_with_its_tags_in_the_namespaces_asked(
 
     assert resp.status_code == 200
     assert resp.json() == [
-        {"content_hash": b, "labels": ["medium:photographic"]},
-        {"content_hash": a, "labels": ["medium:photographic", "rating:sfw"]},
+        {"content_hash": b, "filename": f"{b}.png", "animated": False,
+         "labels": ["medium:photographic"]},
+        {"content_hash": a, "filename": f"{a}.png", "animated": False,
+         "labels": ["medium:photographic", "rating:sfw"]},
     ]
 
 

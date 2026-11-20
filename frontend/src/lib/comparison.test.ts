@@ -14,6 +14,7 @@ function compared(detail: Partial<ImageDetail> = {}, extra: Partial<ComparedImag
 			aspect_ratio: 1024 / 1536,
 			format: 'PNG',
 			thumb_generated: true,
+			animated: false,
 			archived: false,
 			nsfw: false,
 			file_size: 2 * 1024 * 1024,

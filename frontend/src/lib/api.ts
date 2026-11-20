@@ -241,15 +241,17 @@ export function previewUrl(hash: string, size: number = displaySize()): string {
 }
 
 /**
- * The URL for showing a still image at display size. GIFs are sent whole so
- * they animate; everything else gets the WebP preview.
+ * The URL for showing an image at display size. Animated images are sent
+ * whole so they animate; everything else gets the WebP preview. The filename
+ * fallback keeps a GIF animated before its row has been rescanned.
  */
 export function displayUrl(
 	hash: string,
 	filename: string,
+	animated = false,
 	size: number = displaySize()
 ): string {
-	return isGifFilename(filename) ? imageFileUrl(hash) : previewUrl(hash, size);
+	return animated || isGifFilename(filename) ? imageFileUrl(hash) : previewUrl(hash, size);
 }
 
 // Sources

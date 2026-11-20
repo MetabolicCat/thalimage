@@ -1,7 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import { createSlidePreloader, neighborsToPreload } from './slidePreloader';
 
-const slide = (hash: string, filename = `${hash}.png`) => ({ content_hash: hash, filename, score: null });
+const slide = (hash: string, filename = `${hash}.png`, animated = false) => ({
+	content_hash: hash,
+	filename,
+	animated,
+	score: null
+});
 
 describe('createSlidePreloader', () => {
 	it('loads each slide kept once, skipping videos', () => {
@@ -21,11 +26,13 @@ describe('createSlidePreloader', () => {
 		expect(loaded).toEqual(['a', 'b', 'a']);
 	});
 
-	it('gives the loader the filename, so a GIF can load whole', () => {
-		const loaded: [string, string][] = [];
-		const keep = createSlidePreloader((hash, filename) => loaded.push([hash, filename]));
-		keep([slide('g', 'a.gif')]);
-		expect(loaded).toEqual([['g', 'a.gif']]);
+	it('gives the loader the filename and animation flag', () => {
+		const loaded: [string, string, boolean][] = [];
+		const keep = createSlidePreloader((hash, filename, animated) =>
+			loaded.push([hash, filename, animated])
+		);
+		keep([slide('g', 'a.gif', true)]);
+		expect(loaded).toEqual([['g', 'a.gif', true]]);
 	});
 });
 

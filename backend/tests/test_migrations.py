@@ -16,17 +16,34 @@ def _db_at(tmp_path: Path, version: int) -> sqlite3.Connection:
     return conn
 
 
-def _image(conn: sqlite3.Connection, h: str, source_id: int = 1) -> None:
+def _image(conn: sqlite3.Connection, h: str, source_id: int = 1, *, format: str = "PNG") -> None:
     conn.execute(
         """INSERT INTO images (content_hash, filename, source_id, relative_path,
                file_size, width, height, aspect_ratio, format, file_modified)
-           VALUES (?, ?, ?, ?, 1, 1, 1, 1.0, 'PNG', '2024-01-01')""",
-        (h, h, source_id, h),
+           VALUES (?, ?, ?, ?, 1, 1, 1, 1.0, ?, '2024-01-01')""",
+        (h, h, source_id, h, format),
     )
 
 
 def _hashes(conn: sqlite3.Connection, sql: str, *params: object) -> set[str]:
     return {r[0] for r in conn.execute(sql, params)}
+
+
+def test_027_leaves_gifs_for_one_rescan(tmp_path: Path) -> None:
+    conn = _db_at(tmp_path, 26)
+    conn.execute("INSERT INTO sources (id, path) VALUES (1, '/a')")
+    _image(conn, "gif", format="GIF")
+    _image(conn, "png", format="PNG")
+    conn.commit()
+
+    migrate(conn, target=27)
+
+    rows = {
+        row["content_hash"]: (row["animated"], row["animation_version"])
+        for row in conn.execute("SELECT content_hash, animated, animation_version FROM images")
+    }
+    assert rows == {"gif": (0, 0), "png": (0, 1)}
+    conn.close()
 
 
 def test_migrate_stops_at_target(tmp_path: Path) -> None:

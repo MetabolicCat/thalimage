@@ -8,6 +8,8 @@ export interface ImageSummary {
 	aspect_ratio: number;
 	format: string;
 	thumb_generated: boolean;
+	/** Whether the file holds more than one frame (GIF, APNG, animated WebP). */
+	animated: boolean;
 	archived: boolean;
 	nsfw: boolean;
 	/** The image's near-duplicate group, numbered from 0 in listing order;
@@ -99,6 +101,7 @@ export interface Neighbors {
 export interface SequenceItem {
 	content_hash: string;
 	filename: string;
+	animated: boolean;
 	score: number | null;
 }
 

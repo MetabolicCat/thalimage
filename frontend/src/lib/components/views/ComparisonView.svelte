@@ -122,17 +122,29 @@
 	<div class="pictures">
 		{#if mode === 'side'}
 			<figure>
-				<ImagePanel hash={reference.detail.content_hash} filename={reference.detail.filename} />
+				<ImagePanel
+					hash={reference.detail.content_hash}
+					filename={reference.detail.filename}
+					animated={reference.detail.animated}
+				/>
 				<figcaption>Reference</figcaption>
 			</figure>
 			<div class="divider"></div>
 			<figure>
-				<ImagePanel hash={current.detail.content_hash} filename={current.detail.filename} />
+				<ImagePanel
+					hash={current.detail.content_hash}
+					filename={current.detail.filename}
+					animated={current.detail.animated}
+				/>
 				<figcaption>Current</figcaption>
 			</figure>
 		{:else if mode === 'toggle'}
 			<figure>
-				<ImagePanel hash={single.detail.content_hash} filename={single.detail.filename} />
+				<ImagePanel
+					hash={single.detail.content_hash}
+					filename={single.detail.filename}
+					animated={single.detail.animated}
+				/>
 				<figcaption>{single === reference ? 'Reference' : 'Current'}</figcaption>
 			</figure>
 		{:else}
@@ -148,7 +160,11 @@
 					onpointercancel={() => (dragging = false)}
 				>
 					<img
-						src={displayUrl(reference.detail.content_hash, reference.detail.filename)}
+						src={displayUrl(
+							reference.detail.content_hash,
+							reference.detail.filename,
+							reference.detail.animated
+						)}
 						alt={reference.detail.filename}
 						draggable="false"
 					/>
@@ -156,7 +172,11 @@
 						<img
 							class="top"
 							draggable="false"
-							src={displayUrl(current.detail.content_hash, current.detail.filename)}
+							src={displayUrl(
+								current.detail.content_hash,
+								current.detail.filename,
+								current.detail.animated
+							)}
 							alt={current.detail.filename}
 							style={overlayKind === 'blend' ? `opacity: ${amount / 100}` : `clip-path: inset(0 0 0 ${amount}%)`}
 						/>

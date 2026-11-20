@@ -7,12 +7,14 @@
 	let {
 		hash,
 		filename,
+		animated = false,
 		loop = false,
 		videoEl = $bindable(null),
 		onloaded
 	}: {
 		hash: string;
 		filename: string;
+		animated?: boolean;
 		loop?: boolean;
 		videoEl?: HTMLVideoElement | null;
 		/** Called with the hash once its media has loaded or failed to. */
@@ -62,7 +64,7 @@
 		></video>
 	{:else}
 		<img
-			src={displayUrl(hash, filename)}
+			src={displayUrl(hash, filename, animated)}
 			alt={filename}
 			onload={settle}
 			onerror={settle}

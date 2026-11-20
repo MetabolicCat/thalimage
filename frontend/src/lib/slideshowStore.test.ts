@@ -2,7 +2,12 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { SequenceItem } from './types';
 
 function images(n: number, score: number | null = null): SequenceItem[] {
-	return Array.from({ length: n }, (_, i) => ({ content_hash: `h${i}`, filename: `f${i}.png`, score }));
+	return Array.from({ length: n }, (_, i) => ({
+		content_hash: `h${i}`,
+		filename: `f${i}.png`,
+		animated: false,
+		score
+	}));
 }
 
 const hashes = (items: SequenceItem[]) => items.map((i) => i.content_hash);

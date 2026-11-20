@@ -8,7 +8,7 @@
 		getCollection,
 		getCollectionLabels,
 		listTags,
-		previewUrl,
+		displayUrl,
 		removeImageTag
 	} from '$lib/api';
 	import { isTextEntry } from '$lib/keys';
@@ -119,7 +119,7 @@
 	// Warm the next image's preview.
 	$effect(() => {
 		const next = images[(index + 1) % Math.max(images.length, 1)];
-		if (next) new Image().src = previewUrl(next.content_hash);
+		if (next) new Image().src = displayUrl(next.content_hash, next.filename, next.animated);
 	});
 </script>
 
@@ -144,7 +144,7 @@
 	{#if current}
 		<div class="body">
 			<a class="picture" href="/image/{current.content_hash}" title="Open in the viewer">
-				<img src={previewUrl(current.content_hash)} alt="" />
+				<img src={displayUrl(current.content_hash, current.filename, current.animated)} alt="" />
 			</a>
 			<aside class="panel" class:busy>
 				{#each VOCABULARY as ns (ns.name)}

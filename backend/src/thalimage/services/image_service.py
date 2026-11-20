@@ -34,6 +34,8 @@ class ImageSummary(BaseModel):
     aspect_ratio: float
     format: str
     thumb_generated: bool
+    # Whether the file holds more than one frame (GIF, APNG, animated WebP).
+    animated: bool = False
     archived: bool = False
     nsfw: bool = False
     # The image's near-duplicate group, numbered from 0 in listing order;
@@ -152,11 +154,15 @@ def append_media_filters(
         params.append(date_to)
     if aspect_ratio_filter in ASPECT_RATIO_FILTERS:
         q += f" AND {prefix}{ASPECT_RATIO_FILTERS[aspect_ratio_filter]}"
-    if media_type in ("video", "image"):
+    if media_type == "animated":
+        q += f" AND {prefix}animated = 1"
+    elif media_type in ("video", "image"):
         placeholders = ",".join("?" * len(VIDEO_FORMATS))
         op = "IN" if media_type == "video" else "NOT IN"
         q += f" AND {prefix}format {op} ({placeholders})"
         params.extend(VIDEO_FORMATS)
+        if media_type == "image":
+            q += f" AND {prefix}animated = 0"
     return q
 
 
@@ -515,6 +521,7 @@ class SequenceItem(BaseModel):
 
     content_hash: str
     filename: str
+    animated: bool = False
     score: Optional[float] = None  # ELO score in the collection browsed
 
 
@@ -537,13 +544,19 @@ def sequence(
         score = _ELO_SCORE_SQL
         params.append(score_collection_id)
     sql = _apply_filters(
-        f"SELECT content_hash, filename, {score} AS score, {key.expr} AS {key.alias} {_LIVE}",
+        f"SELECT content_hash, filename, animated, {score} AS score,"
+        f" {key.expr} AS {key.alias} {_LIVE}",
         params,
         filters,
     )
     sql += f" ORDER BY {key.alias} {direction}, content_hash {direction}"
     return [
-        SequenceItem(content_hash=r["content_hash"], filename=r["filename"], score=r["score"])
+        SequenceItem(
+            content_hash=r["content_hash"],
+            filename=r["filename"],
+            animated=r["animated"],
+            score=r["score"],
+        )
         for r in conn.execute(sql, params)
     ]
 

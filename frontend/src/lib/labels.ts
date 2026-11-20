@@ -12,6 +12,8 @@ export interface Namespace {
 
 export interface ImageLabels {
 	content_hash: string;
+	filename: string;
+	animated: boolean;
 	labels: string[];
 }
 

@@ -38,13 +38,16 @@ indexed.
    slightly cropped or its colours adjusted, so it can tell that two
    different files show nearly the same picture. Videos get none.
    Images scanned before this existed are read once more to get one.
-4. **Thumbnail generation.** A 400px WebP is written to `cache/thumbs/`.
+4. **Animation.** A still image is checked for more than one frame, so
+   the Animated filter can tell a moving GIF from a still one. GIFs
+   scanned before this existed are read once more.
+5. **Thumbnail generation.** A 400px WebP is written to `cache/thumbs/`.
    For videos, a frame is pulled with ffmpeg at 10% into the runtime,
    which usually avoids a black opening frame.
-5. **Recording.** The image and where it was found are written to the
+6. **Recording.** The image and where it was found are written to the
    database, a few dozen files at a time, so the rest of the app stays
    responsive during a long scan.
-6. **Playable videos.** Once everything is recorded, each video not seen
+7. **Playable videos.** Once everything is recorded, each video not seen
    before is checked, and those iOS cannot play get an MP4 copy (see
    Image delivery). The scan shows this as "Checking videos", then
    "Making videos playable on iOS"; the images are already browsable

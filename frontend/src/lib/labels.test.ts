@@ -45,8 +45,8 @@ describe('missingNamespaces', () => {
 describe('labelCounts', () => {
 	it('counts each label over the images', () => {
 		const counts = labelCounts([
-			{ content_hash: 'a', labels: ['medium:pixel', 'overlay:anime'] },
-			{ content_hash: 'b', labels: ['medium:pixel'] }
+			{ content_hash: 'a', filename: 'a.png', animated: false, labels: ['medium:pixel', 'overlay:anime'] },
+			{ content_hash: 'b', filename: 'b.png', animated: false, labels: ['medium:pixel'] }
 		]);
 		expect(counts.get('medium:pixel')).toBe(2);
 		expect(counts.get('overlay:anime')).toBe(1);
@@ -56,9 +56,9 @@ describe('labelCounts', () => {
 
 describe('nextUnlabelled', () => {
 	const images = [
-		{ content_hash: 'a', labels: [] },
-		{ content_hash: 'b', labels: ['medium:pixel', 'overlay:none'] },
-		{ content_hash: 'c', labels: ['medium:pixel'] }
+		{ content_hash: 'a', filename: 'a.png', animated: false, labels: [] },
+		{ content_hash: 'b', filename: 'b.png', animated: false, labels: ['medium:pixel', 'overlay:none'] },
+		{ content_hash: 'c', filename: 'c.png', animated: false, labels: ['medium:pixel'] }
 	];
 
 	it('finds the next image missing a namespace, wrapping round', () => {
