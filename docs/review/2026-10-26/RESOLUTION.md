@@ -1,0 +1,74 @@
+# Resolution of the 2026-10-26 review
+
+Every finding from [README.md](README.md) and how it was resolved. Each
+remediation PR updates its own rows, so this file is complete when the
+series is.
+
+Status: **fixed** (with the PR), **superseded** (resolved by the named
+finding's fix), **won't fix** (with the reason), or **open**.
+
+| ID | Sev | Finding | Status | Notes |
+|---|---|---|---|---|
+| [SEC-001](security.md#sec-001-unvalidated-hashes-in-post-imagesdelete-unlink-arbitrary-mp4-files) | medium | Unvalidated hashes in POST /images/delete unlink arbitrary *.mp4 files | fixed | [#181](https://github.com/RKI027/thalimage/pull/181): body hashes use the `ContentHash` pattern; a test covers a file outside `video_dir` |
+| [SEC-002](security.md#sec-002-settings-close-link-renders-returnto-unchecked-javascript-xss) | medium | Settings "Close" link renders returnTo unchecked (javascript: XSS) | fixed | [#181](https://github.com/RKI027/thalimage/pull/181): `returnToHref` accepts only on-origin single-slash paths; unit-tested |
+| [SEC-003](security.md#sec-003-ci-downloads-and-runs-unpinned-unverified-ffmpeg-builds) | medium | CI downloads and runs unpinned, unverified ffmpeg builds | open |  |
+| [SEC-004](security.md#sec-004-no-frame-ancestors--x-frame-options-clickjacking-bypasses-the-write-guard) | low | No frame-ancestors / X-Frame-Options: clickjacking bypasses the write guard | open |  |
+| [SEC-005](security.md#sec-005-write-guards-fallback-trusts-any-loopback-port-and-every-wildcard-matched-host) | low | Write guard's fallback trusts any loopback port and every wildcard-matched host | open |  |
+| [SEC-006](security.md#sec-006-dir-localsel-asks-to-permanently-trust-an-eval-that-loads-mutable-code) | low | .dir-locals.el asks to permanently trust an eval that loads mutable code | open |  |
+| [SEC-007](security.md#sec-007-docker-base-images-are-pinned-by-mutable-tag-unlike-the-sha-pinned-actions) | low | Docker base images are pinned by mutable tag, unlike the SHA-pinned actions | open |  |
+| [ORG-001](organization.md#org-001-break-the-service-import-cycles-instead-of-hiding-them-in-local-imports) | medium | Break the service import cycles instead of hiding them in local imports | open |  |
+| [ORG-002](organization.md#org-002-share-the-changed-since-scan-guard-between-file-deletion-and-renaming) | medium | Share the "changed since scan" guard between file deletion and renaming | open |  |
+| [ORG-003](organization.md#org-003-encode-collection-membership-once) | medium | Encode collection membership once | open |  |
+| [ORG-004](organization.md#org-004-split-the-1025-line-viewer-page) | medium | Split the 1025-line viewer page | open |  |
+| [ORG-005](organization.md#org-005-use-one-sha-256-file-hasher) | low | Use one SHA-256 file hasher | open |  |
+| [ORG-006](organization.md#org-006-derive-the-stored-video-format-in-one-place) | low | Derive the stored video format in one place | open |  |
+| [ORG-007](organization.md#org-007-merge-the-two-ffprobe-wrappers) | low | Merge the two ffprobe wrappers | open |  |
+| [ORG-008](organization.md#org-008-drop-vestigial-columns-sourcesenabled-and-imagesthumb_generated) | low | Drop vestigial columns `sources.enabled` and `images.thumb_generated` | open |  |
+| [ORG-009](organization.md#org-009-remove-the-test-only-list_images-wrapper) | low | Remove the test-only `list_images` wrapper | open |  |
+| [ORG-010](organization.md#org-010-remove-dead-code-in-apits-scanmanager-and-_page) | low | Remove dead code in `api.ts`, `ScanManager` and `_page` | open |  |
+| [ORG-011](organization.md#org-011-use-copypath-and-one-failure-formatter-everywhere) | low | Use `copyPath` and one failure formatter everywhere | open |  |
+| [ORG-012](organization.md#org-012-move-the-shared-grid-page-glue-into-gallery) | low | Move the shared grid-page glue into `Gallery` | open |  |
+| [ORG-013](organization.md#org-013-share-the-settings-keyvalue-encoding) | low | Share the `settings` key/value encoding | open |  |
+| [ORG-014](organization.md#org-014-name-the-duplicated-constants-once) | low | Name the duplicated constants once | open |  |
+| [ORG-015](organization.md#org-015-trim-imagefileinfo-to-what-the-scan-uses) | low | Trim `ImageFileInfo` to what the scan uses | open |  |
+| [ORG-016](organization.md#org-016-reuse-_record_sql-in-image_standings) | low | Reuse `_record_sql` in `image_standings` | open |  |
+| [ORG-017](organization.md#org-017-raise-the-pydantic-settings-floor-and-drop-the-toml-import-fallback) | low | Raise the pydantic-settings floor and drop the TOML import fallback | open |  |
+| [ORG-018](organization.md#org-018-drop-unused-parameters-and-single-use-indirection) | low | Drop unused parameters and single-use indirection | open |  |
+| [DOC-001](docs-consistency.md#doc-001-state-in-readme-security-that-the-open-api-can-delete-files-on-disk) | medium | State in README Security that the open API can delete files on disk | open |  |
+| [DOC-002](docs-consistency.md#doc-002-document-the-indexed-image-formats-heic-is-named-but-never-indexed) | medium | Document the indexed image formats; HEIC is named but never indexed | open |  |
+| [DOC-003](docs-consistency.md#doc-003-separate-the-unbuilt-image-analysis-plan-from-current-design-decisions) | medium | Separate the unbuilt "Image analysis" plan from current design decisions | open |  |
+| [DOC-004](docs-consistency.md#doc-004-bring-the-claudemd-code-layout-up-to-date) | low | Bring the CLAUDE.md code layout up to date | open |  |
+| [DOC-005](docs-consistency.md#doc-005-document-the-label-page-linked-from-every-collection) | low | Document the Label page linked from every collection | open |  |
+| [DOC-006](docs-consistency.md#doc-006-update-the-readme-feature-list) | low | Update the README feature list | open |  |
+| [DOC-007](docs-consistency.md#doc-007-list-development-prerequisites-and-the-api-explorer-in-readme) | low | List development prerequisites and the API explorer in README | open |  |
+| [DOC-008](docs-consistency.md#doc-008-correct-the-designmd-wording-on-all-images-and-source-presets) | low | Correct the design.md wording on "All Images" and source presets | open |  |
+| [DOC-009](docs-consistency.md#doc-009-list-cachevideos-and-near-duplicatesjson-in-the-storage-descriptions) | low | List cache/videos and near-duplicates.json in the storage descriptions | open |  |
+| [DOC-010](docs-consistency.md#doc-010-say-the-deploy-secrets-live-in-the-test-deploy-environment) | low | Say the deploy secrets live in the test-deploy environment | open |  |
+| [DOC-011](docs-consistency.md#doc-011-fix-the-ciyml-comment-on-what-checksh-runs) | low | Fix the ci.yml comment on what check.sh runs | open |  |
+| [DOC-012](docs-consistency.md#doc-012-fix-the-thalimage-devel-commentary-for-the-frontend-command) | low | Fix the `thalimage-dev.el` commentary for the frontend command | open |  |
+| [TST-001](testing.md#tst-001-make-the-csrf-allowed-hosts-test-reach-the-allowed-hosts-rule) | medium | Make the CSRF allowed-hosts test reach the allowed-hosts rule | open |  |
+| [TST-002](testing.md#tst-002-test-the-viewer-pages-navigation-and-destructive-action-logic) | medium | Test the viewer page's navigation and destructive-action logic | open |  |
+| [TST-003](testing.md#tst-003-run-the-backend-tests-on-the-deployed-python-and-ffmpeg) | medium | Run the backend tests on the deployed Python and ffmpeg | open |  |
+| [TST-004](testing.md#tst-004-cover-rename-and-delete-failures-after-the-pre-checks-pass) | medium | Cover rename and delete failures after the pre-checks pass | open |  |
+| [TST-005](testing.md#tst-005-exercise-the-real-request-dependencies-at-least-once) | low | Exercise the real request dependencies at least once | open |  |
+| [TST-006](testing.md#tst-006-measure-coverage-in-ci-and-for-the-frontend) | low | Measure coverage in CI, and for the frontend | open |  |
+| [TST-007](testing.md#tst-007-close-the-sqlite-connections-the-tests-open) | low | Close the SQLite connections the tests open | open |  |
+| [TST-008](testing.md#tst-008-type-check-the-test-suite) | low | Type-check the test suite | open |  |
+| [PKG-001](packaging.md#pkg-001-stop-cis-make-install-rewriting-uvlock-before-the-lock-check) | high | Stop CI's `make install` rewriting uv.lock before the lock check | fixed | [#181](https://github.com/RKI027/thalimage/pull/181): the Makefile exports `UV_LOCKED=1`, and CI checks `git diff --exit-code -- backend/uv.lock` after `make install` |
+| [PKG-002](packaging.md#pkg-002-declare-the-certifi-exclude-newer-exemption-that-uvlock-depends-on) | medium | Declare the certifi exclude-newer exemption that uv.lock depends on | fixed | [#181](https://github.com/RKI027/thalimage/pull/181): certifi 2026.10.19 is past the 7-day gate; re-locked without the exemption |
+| [PKG-003](packaging.md#pkg-003-run-ci-on-the-python-version-the-image-ships) | medium | Run CI on the Python version the image ships | open |  |
+| [PKG-004](packaging.md#pkg-004-pin-the-uv-version-for-developers-not-just-ci-and-docker) | low | Pin the uv version for developers, not just CI and Docker | open |  |
+| [PKG-005](packaging.md#pkg-005-extend-dependabot-beyond-github-actions) | low | Extend Dependabot beyond GitHub Actions | open |  |
+| [PKG-006](packaging.md#pkg-006-give-the-frontend-the-same-release-age-cooldown-as-the-backend) | low | Give the frontend the same release-age cooldown as the backend | open |  |
+| [PKG-007](packaging.md#pkg-007-include-the-real-license-in-the-sdist-not-a-dangling-symlink) | low | Include the real LICENSE in the sdist, not a dangling symlink | open |  |
+| [PKG-008](packaging.md#pkg-008-declare-starlette-which-the-backend-imports-directly) | low | Declare starlette, which the backend imports directly | open |  |
+| [GEN-001](general.md#gen-001-perceptual-hash-pads-at-full-resolution-memory-grows-with-maxwh²) | high | Perceptual hash pads at full resolution, memory grows with max(w,h)² | open |  |
+| [GEN-002](general.md#gen-002-removing-a-source-while-it-is-scanned-brings-its-images-and-preset-back) | medium | Removing a source while it is scanned brings its images and preset back | open |  |
+| [GEN-003](general.md#gen-003-labelling-page-treats-imported-star-ratings-as-labels-and-deletes-them) | medium | Labelling page treats imported star ratings as labels and deletes them | open |  |
+| [GEN-004](general.md#gen-004-raising-the-perceptual-hash-version-re-reads-every-video) | medium | Raising the perceptual-hash version re-reads every video | open |  |
+| [GEN-005](general.md#gen-005-source-summary-lists-a-folder-once-per-duplicate-copy) | medium | Source summary lists a folder once per duplicate copy | open |  |
+| [GEN-006](general.md#gen-006-thumbnails-and-previews-ignore-exif-orientation) | low | Thumbnails and previews ignore EXIF orientation | open |  |
+| [GEN-007](general.md#gen-007-re-keying-in-a-scan-drops-pending-possible-edit-questions) | low | Re-keying in a scan drops pending possible-edit questions | open |  |
+| [GEN-008](general.md#gen-008-derived-files-of-merged-or-purged-images-stay-in-the-cache-forever) | low | Derived files of merged or purged images stay in the cache forever | open |  |
+| [GEN-009](general.md#gen-009-picture-hash-raises-indexerror-on-jpegs-cut-between-segments) | low | Picture hash raises IndexError on JPEGs cut between segments | open |  |
+| [GEN-010](general.md#gen-010-label-page-says-no-images-while-loading-and-desyncs-after-a-failed-toggle) | low | Label page says "no images" while loading, and desyncs after a failed toggle | open |  |

@@ -15,7 +15,14 @@ from thalimage.core.previews import PREVIEW_SIZES, generate_preview, nearest_siz
 from thalimage.core.derived_files import DerivedDirs, remove_derived
 from thalimage.core.thumbnails import thumbnail_path
 from thalimage.core.video import playable_copy_path
-from thalimage.deps import ContentHash, get_db, get_preview_dir, get_thumb_dir, get_video_dir
+from thalimage.deps import (
+    ContentHash,
+    ContentHashValue,
+    get_db,
+    get_preview_dir,
+    get_thumb_dir,
+    get_video_dir,
+)
 from thalimage.services.collection_service import resolve_scope
 from thalimage.services.elo_ranking import elo_cut
 from thalimage.services.elo_service import EloStanding, image_standings
@@ -304,7 +311,7 @@ def get_image_preview(
 
 
 class ImagesBody(BaseModel):
-    hashes: list[str]
+    hashes: list[ContentHashValue]
 
 
 class ArchiveRequest(BaseModel):

@@ -54,6 +54,9 @@ jobs:
           echo "$dest/bin" >> "$GITHUB_PATH"
 
       - run: make install
+      # UV_LOCKED makes a stale lock an error in make install; assert that the
+      # install neither re-resolved nor rewrote the committed lock (PKG-001).
+      - run: git diff --exit-code -- backend/uv.lock
       - run: make fe-install
 
       # Lint, typecheck and tests for the backend, then svelte-check.

@@ -9,6 +9,7 @@ from typing import TYPE_CHECKING, Annotated
 
 from fastapi import Path as PathParam
 from fastapi import Request
+from pydantic import Field
 
 from thalimage.db.engine import connect
 
@@ -18,7 +19,10 @@ if TYPE_CHECKING:
 
 # Content hashes are SHA-256 hex digests. Constraining the path param keeps
 # attacker-controlled values out of filesystem paths and DB lookups.
-ContentHash = Annotated[str, PathParam(pattern=r"^[0-9a-f]{64}$")]
+CONTENT_HASH_PATTERN = r"^[0-9a-f]{64}$"
+ContentHash = Annotated[str, PathParam(pattern=CONTENT_HASH_PATTERN)]
+# The same shape in JSON bodies: they reach filesystem paths too.
+ContentHashValue = Annotated[str, Field(pattern=CONTENT_HASH_PATTERN)]
 
 # Documentation slugs address files on disk; constrain them at the edge.
 DocSlug = Annotated[str, PathParam(pattern=r"^[a-z0-9-]+$")]
