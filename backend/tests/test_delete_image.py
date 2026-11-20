@@ -11,6 +11,7 @@ from pathlib import Path
 import pytest
 from fastapi.testclient import TestClient
 
+from thalimage.core.video import playable_copy_path
 from tests.helpers import scan_source
 
 COPY = str(Path("sub") / "a-copy.png")
@@ -163,6 +164,22 @@ def test_a_failed_removal_keeps_the_image(
 
 def test_deleting_an_unknown_image_is_a_404(client: TestClient) -> None:
     assert _delete(client, "0" * 64).status_code == 404
+
+
+def test_deleting_several_rejects_values_that_are_not_content_hashes(
+    client: TestClient, tmp_path: Path
+) -> None:
+    video_dir = tmp_path / "videos"
+    video_dir.mkdir()
+    # Without validation this value resolves through video_dir/.. to a file
+    # outside the video cache, which the endpoint would unlink.
+    victim = playable_copy_path(video_dir, "..victim")
+    victim.write_bytes(b"keep")
+
+    resp = _delete_several(client, ["/tmp/x", "../x", "..victim"])
+
+    assert resp.status_code == 422
+    assert victim.read_bytes() == b"keep"
 
 
 def _delete_several(client: TestClient, hashes: list[str]):  # type: ignore[no-untyped-def]
