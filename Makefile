@@ -1,6 +1,11 @@
 .PHONY: install test cov lint lint-fix typecheck lock-check check dev clean \
 	fe-install fe-dev fe-build fe-preview fe-check fe-test
 
+# `uv sync` and `uv run` otherwise re-resolve and rewrite uv.lock when it
+# disagrees with pyproject.toml, so CI's install step could hide a stale lock
+# before check.sh's lock check sees it (PKG-001). Refuse the rewrite instead.
+export UV_LOCKED := 1
+
 # Backend
 install:
 	cd backend && uv sync
