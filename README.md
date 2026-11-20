@@ -25,8 +25,10 @@ Container Registry for each release tag (`v*`), as `:latest` and as the
 version, so a deployment is a pull rather than a build. Every push to a
 pull request publishes `:dev` (and `:pr-<number>`) instead, for testing a
 branch on a deployment set to `THALIMAGE_TAG=dev`; the latest push wins.
-To publish `:dev` from a branch without a pull request, run the workflow
-by hand:
+A merge to `main` publishes `:dev` once more and redeploys it, so changes
+that arrived through a fork or Dependabot (whose PR builds cannot push to
+the registry) still reach the test deployment. To publish `:dev` from a
+branch without a pull request, run the workflow by hand:
 
 ```
 gh workflow run docker.yml --ref <branch>
