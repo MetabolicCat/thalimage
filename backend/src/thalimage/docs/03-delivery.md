@@ -27,6 +27,10 @@ slideshow, voting and comparison views load the original GIF instead and
 it animates. The gallery keeps the still thumbnail, and GIFs are not
 downscaled on the way to those views.
 
+The **Animated** filter lists images whose files hold more than one
+frame. A scan records this when it reads the file; the first scan after
+an upgrade re-reads GIFs once to learn it, without a full rescan.
+
 ## How previews are made
 
 Previews come in three sizes — 1280, 1920 and 2560 pixels on the long

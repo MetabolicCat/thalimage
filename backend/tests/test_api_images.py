@@ -251,6 +251,18 @@ def test_filter_by_media_type(client: TestClient, db: sqlite3.Connection) -> Non
     m = _seed_media(db)
     assert _listed(client, media_type="video") == {m["jan31"]}
     assert _listed(client, media_type="image") == {m["jan30"], m["feb01"]}
+    assert _listed(client, media_type="animated") == set()
+
+
+def test_filter_by_animated_media_type(client: TestClient, db: sqlite3.Connection) -> None:
+    still = insert_image(db, "a" * 64)
+    animated = insert_image(db, "d" * 64, filename="loop.gif", format="GIF")
+    db.execute("UPDATE images SET animated = 1, animation_version = 1 WHERE content_hash = ?", (animated,))
+    db.commit()
+
+    assert _listed(client, media_type="animated") == {animated}
+    assert _listed(client, media_type="image") == {still}
+    assert _listed(client, media_type="video") == set()
 
 
 def test_filter_by_date_range(client: TestClient, db: sqlite3.Connection) -> None:
@@ -372,7 +384,7 @@ def test_sequence_lists_the_whole_listing_in_order(
     resp = client.get("/api/v1/images/sequence", params={"sort": "name", "dir": "desc"})
     assert resp.status_code == 200
     assert resp.json() == [
-        {"content_hash": h, "filename": f"s{i}.png", "score": None}
+        {"content_hash": h, "filename": f"s{i}.png", "animated": False, "score": None}
         for i, h in reversed(list(enumerate(hashes)))
     ]
 

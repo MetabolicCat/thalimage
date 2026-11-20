@@ -99,6 +99,7 @@
 		>
 			<option value="">All</option>
 			<option value="image">Images</option>
+			<option value="animated">Animated</option>
 			<option value="video">Videos</option>
 		</select>
 	</div>
