@@ -2,6 +2,10 @@ name: Publish image
 
 on:
   push:
+    # Every merge to main publishes and redeploys :dev. PR builds are skipped
+    # for forks and Dependabot (they get no registry token), so without this
+    # their merges would leave :dev stale.
+    branches: [main]
     # Releases: an image is published for each v* tag.
     tags: ["v*"]
   # Branches under review: every push to a PR publishes :dev, which the
@@ -71,9 +75,9 @@ jobs:
           images: ${{ env.IMAGE }}
           tags: |
             type=raw,value=latest,enable=${{ startsWith(github.ref, 'refs/tags/v') }}
-            # A PR push or a manual run from any branch moves :dev, so a
-            # test deployment can stay pinned to one tag while the build
-            # under it changes.
+            # A PR push, a merge to main, or a manual run from any branch
+            # moves :dev, so a test deployment can stay pinned to one tag
+            # while the build under it changes.
             type=raw,value=dev,enable=${{ !startsWith(github.ref, 'refs/tags/v') }}
             type=ref,event=pr
             type=semver,pattern={{version}}
