@@ -22,6 +22,7 @@ from thalimage.deps import (
 from thalimage.services.collection_service import get_or_create_source_preset
 from thalimage.services.file_changes import SourceNotWritable, check_folder_accepts_writes
 from thalimage.services.file_deletion import DeletionRefused, UnknownCopy, delete_copies
+from thalimage.services.file_moving import MoveRefused, move_copies
 from thalimage.services.playable_copies import remove_playable_copies
 from thalimage.services.scan_manager import ScanManager
 from thalimage.services.scan_service import run_scan
@@ -70,6 +71,11 @@ class CopiesToDelete(BaseModel):
     paths: list[str]
 
 
+class CopiesToMove(BaseModel):
+    to_source_id: int
+    paths: list[str]
+
+
 class DeleteFailure(BaseModel):
     relative_path: str
     error: str
@@ -78,6 +84,14 @@ class DeleteFailure(BaseModel):
 class DeletedCopies(BaseModel):
     deleted: list[str]
     sidecars: list[str]
+    failed: list[DeleteFailure]
+
+
+class MovedCopies(BaseModel):
+    moved: list[str]
+    deleted: list[str]  # the target already held these images
+    sidecars: list[str]
+    kept_sidecars: list[str]
     failed: list[DeleteFailure]
 
 
@@ -205,6 +219,35 @@ def delete_source_copies(
     return DeletedCopies(
         deleted=result.deleted,
         sidecars=result.sidecars,
+        failed=[DeleteFailure(relative_path=p, error=e) for _, p, e in result.failed],
+    )
+
+
+@router.post(
+    "/{source_id}/move-copies",
+    response_model=MovedCopies,
+    dependencies=[Depends(live_source)],
+)
+def move_source_copies(
+    source_id: int,
+    body: CopiesToMove,
+    db: sqlite3.Connection = Depends(get_db),
+) -> MovedCopies:
+    """Move files from disk into another source's folder, keeping their
+    relative paths. Refused as a whole if any of them may not be moved."""
+    try:
+        result = move_copies(db, source_id, body.to_source_id, body.paths)
+    except LookupError as exc:
+        raise HTTPException(404, str(exc)) from exc
+    except UnknownCopy as exc:
+        raise HTTPException(400, str(exc)) from exc
+    except (SourceNotWritable, MoveRefused) as exc:
+        raise HTTPException(409, str(exc)) from exc
+    return MovedCopies(
+        moved=result.moved,
+        deleted=result.deleted,
+        sidecars=result.sidecars,
+        kept_sidecars=result.kept_sidecars,
         failed=[DeleteFailure(relative_path=p, error=e) for _, p, e in result.failed],
     )
 

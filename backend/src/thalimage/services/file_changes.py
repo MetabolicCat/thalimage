@@ -53,16 +53,19 @@ def record_change(
     *,
     outcome: Literal["done", "failed"],
     target: Optional[str] = None,
+    target_source_id: Optional[int] = None,
     error: Optional[str] = None,
 ) -> None:
     """Record one change made (or attempted) on disk, and commit (along
     with anything the caller has pending): the record must survive
-    whatever happens next."""
+    whatever happens next. `target_source_id` is set when the change was a
+    move to another source."""
     with conn:
         conn.execute(
-            "INSERT INTO file_changes (source_id, operation, path, target, outcome, error)"
-            " VALUES (?, ?, ?, ?, ?, ?)",
-            (source_id, operation, path, target, outcome, error),
+            "INSERT INTO file_changes"
+            " (source_id, operation, path, target, target_source_id, outcome, error)"
+            " VALUES (?, ?, ?, ?, ?, ?, ?)",
+            (source_id, operation, path, target, target_source_id, outcome, error),
         )
 
 
@@ -74,6 +77,7 @@ def change_file(
     change: Callable[[], object],
     *,
     target: Optional[str] = None,
+    target_source_id: Optional[int] = None,
 ) -> Optional[str]:
     """Make one change on disk and record it, done or failed; the error if
     it failed."""
@@ -81,8 +85,13 @@ def change_file(
         change()
     except OSError as exc:
         record_change(
-            conn, source_id, operation, path, target=target, outcome="failed", error=str(exc)
+            conn, source_id, operation, path,
+            target=target, target_source_id=target_source_id,
+            outcome="failed", error=str(exc),
         )
         return str(exc)
-    record_change(conn, source_id, operation, path, target=target, outcome="done")
+    record_change(
+        conn, source_id, operation, path,
+        target=target, target_source_id=target_source_id, outcome="done",
+    )
     return None
