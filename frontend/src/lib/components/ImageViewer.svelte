@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { isVideoFilename } from '$lib/media';
-	import { previewUrl, thumbUrl, videoUrl } from '$lib/api';
+	import { displayUrl, thumbUrl, videoUrl } from '$lib/api';
 	import { readStored, writeStored } from '$lib/storage';
 
 
@@ -62,7 +62,7 @@
 		></video>
 	{:else}
 		<img
-			src={previewUrl(hash)}
+			src={displayUrl(hash, filename)}
 			alt={filename}
 			onload={settle}
 			onerror={settle}

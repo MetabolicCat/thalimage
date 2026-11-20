@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { previewUrl } from '$lib/api';
+	import { displayUrl } from '$lib/api';
 	import {
 		comparisonRows,
 		nextMode,
@@ -147,12 +147,16 @@
 					onpointerup={() => (dragging = false)}
 					onpointercancel={() => (dragging = false)}
 				>
-					<img src={previewUrl(reference.detail.content_hash)} alt={reference.detail.filename} draggable="false" />
+					<img
+						src={displayUrl(reference.detail.content_hash, reference.detail.filename)}
+						alt={reference.detail.filename}
+						draggable="false"
+					/>
 					{#if !holdingReference}
 						<img
 							class="top"
 							draggable="false"
-							src={previewUrl(current.detail.content_hash)}
+							src={displayUrl(current.detail.content_hash, current.detail.filename)}
 							alt={current.detail.filename}
 							style={overlayKind === 'blend' ? `opacity: ${amount / 100}` : `clip-path: inset(0 0 0 ${amount}%)`}
 						/>

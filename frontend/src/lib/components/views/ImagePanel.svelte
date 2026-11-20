@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { isVideoFilename } from '$lib/media';
-	import { previewUrl, thumbUrl, videoUrl } from '$lib/api';
+	import { displayUrl, thumbUrl, videoUrl } from '$lib/api';
 
 
 	let {
@@ -59,7 +59,7 @@
 	{:else}
 		<img
 			bind:this={imgEl}
-			src={previewUrl(hash)}
+			src={displayUrl(hash, filename)}
 			alt={filename}
 			onload={() => (loaded = true)}
 			onerror={() => (loaded = true)}

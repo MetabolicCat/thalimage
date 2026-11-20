@@ -29,6 +29,7 @@ import type {
 	VersionInfo
 } from './types';
 import type { ImageLabels } from './labels';
+import { isGifFilename } from './media';
 
 const BASE = '/api/v1';
 
@@ -237,6 +238,18 @@ export function displaySize(): number {
  */
 export function previewUrl(hash: string, size: number = displaySize()): string {
 	return `${BASE}/images/${hash}/preview?size=${size}`;
+}
+
+/**
+ * The URL for showing a still image at display size. GIFs are sent whole so
+ * they animate; everything else gets the WebP preview.
+ */
+export function displayUrl(
+	hash: string,
+	filename: string,
+	size: number = displaySize()
+): string {
+	return isGifFilename(filename) ? imageFileUrl(hash) : previewUrl(hash, size);
 }
 
 // Sources

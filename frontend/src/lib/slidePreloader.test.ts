@@ -20,6 +20,13 @@ describe('createSlidePreloader', () => {
 		keep([slide('a')]);
 		expect(loaded).toEqual(['a', 'b', 'a']);
 	});
+
+	it('gives the loader the filename, so a GIF can load whole', () => {
+		const loaded: [string, string][] = [];
+		const keep = createSlidePreloader((hash, filename) => loaded.push([hash, filename]));
+		keep([slide('g', 'a.gif')]);
+		expect(loaded).toEqual([['g', 'a.gif']]);
+	});
 });
 
 describe('neighborsToPreload', () => {
