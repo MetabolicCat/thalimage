@@ -365,7 +365,8 @@ after the sources are removed.
 that source, and says how many there are. Removing never touches the
 files on disk, and images that also lie in another source are kept
 either way, with everything attached. The source's preset collection
-goes in both cases.
+goes in both cases. Removing a source while it is being scanned is
+refused; wait for the scan to finish.
 
 - **Keep their data** marks those images deleted (see
   *Archived and deleted* above): they leave every
