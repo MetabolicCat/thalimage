@@ -63,3 +63,42 @@ def test_a_truncated_file_falls_back_to_the_file_hash(tmp_path: Path, name: str)
     path = tmp_path / name
     path.write_bytes(data[: len(data) // 3])
     assert picture_hash(path) == content_hash(path)
+
+
+def _jpeg_segment_ends(data: bytes) -> list[int]:
+    """The offsets just after each JPEG segment before the scan data."""
+    ends: list[int] = []
+    off = 2
+    while off + 4 <= len(data):
+        while data[off + 1] == 0xFF:  # fill bytes
+            off += 1
+        marker = data[off + 1]
+        if marker == 0xD9:
+            break
+        off += 2 + int.from_bytes(data[off + 2 : off + 4], "big")
+        ends.append(off)
+        if marker == 0xDA:
+            break
+    return ends
+
+
+@pytest.mark.parametrize("name", ["picture.jpg", "progressive.jpg"])
+def test_a_jpeg_cut_between_segments_falls_back_to_the_file_hash(
+    tmp_path: Path, name: str
+) -> None:
+    data = (FIXTURES / name).read_bytes()
+    # The smallest structures the parser can reach, then every segment end.
+    prefixes = [
+        b"\xff\xd8",
+        b"\xff\xd8\xff",
+        b"\xff\xd8\xff\xff",
+        b"\xff\xd8\xff\xe0\x00\x04\xab",
+    ]
+    for i, prefix in enumerate(prefixes):
+        path = tmp_path / f"prefix-{i}.jpg"
+        path.write_bytes(prefix)
+        assert picture_hash(path) == content_hash(path), prefix
+    for cut in _jpeg_segment_ends(data):
+        path = tmp_path / f"cut-{cut}.jpg"
+        path.write_bytes(data[:cut])
+        assert picture_hash(path) == content_hash(path), cut

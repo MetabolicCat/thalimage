@@ -168,12 +168,16 @@ def run_scan(
             unchanged = (
                 previous if previous is not None and unchanged_since_scan(stat, previous) else None
             )
+            # Videos have no perceptual hash and no animation detector: the
+            # versions of those detectors say nothing about them, so raising
+            # one must not send every video through a full read again.
+            video = is_video(file_path)
             if (
                 unchanged is not None
                 and unchanged["extractor_version"] >= EXTRACTOR_VERSION
                 and unchanged["hash_version"] >= HASH_VERSION
-                and unchanged["perceptual_hash_version"] >= PERCEPTUAL_HASH_VERSION
-                and unchanged["animation_version"] >= ANIMATION_VERSION
+                and (video or unchanged["perceptual_hash_version"] >= PERCEPTUAL_HASH_VERSION)
+                and (video or unchanged["animation_version"] >= ANIMATION_VERSION)
             ):
                 kept.add(relative)
                 result.skipped += 1
@@ -192,6 +196,9 @@ def run_scan(
             logger.warning("Skipping %s: %s", file_path, exc)
             result.errors += 1
             failures[relative] = str(exc)
+            # As for any other read error, keep the location: the file still
+            # names the image it did, it just could not be read this time.
+            kept.add(relative)
         except Exception as exc:
             logger.exception("Failed to process %s during scan", file_path)
             result.errors += 1

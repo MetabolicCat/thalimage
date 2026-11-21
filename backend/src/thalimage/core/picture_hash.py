@@ -51,9 +51,10 @@ def picture_hash(path: Path) -> str:
             for start, end in ranges:
                 h.update(data[start:end])
             return h.hexdigest()
-    except (_Malformed, ValueError, struct.error):
+    except (_Malformed, ValueError, struct.error, IndexError):
         # ValueError: an empty file (mmap), or TIFF offsets and counts
-        # that do not pair up (zip).
+        # that do not pair up (zip). IndexError: a JPEG cut between
+        # segments, where a parser looks past the end.
         return content_hash(path)
 
 
