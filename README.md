@@ -59,8 +59,11 @@ control there is. Do not expose it to the internet.
 What the app does guard against is a web page on another site, open in a
 browser on the same network, making the server write on its behalf:
 POST, PUT, PATCH and DELETE requests that a browser marks as cross-site,
-or whose `Origin` is not one the app answers to, get a 403. Requests
-without those headers (scripts, curl) are unaffected.
+or whose `Origin` is not the app's own (or a configured CORS origin), get a
+403. Requests without those headers (scripts, curl) are unaffected.
+Responses also refuse to be framed (`frame-ancestors 'none'`,
+`X-Frame-Options: DENY`) and to have their type sniffed, so another page
+cannot put the app in an iframe and overlay its own controls.
 
 The stack below answers that by never publishing a port at all.
 
@@ -235,11 +238,13 @@ variables take precedence over it.
 `error parsing value for field "allowed_hosts"`. It is a DNS-rebinding
 defense, not authentication. `localhost` and `127.0.0.1` are always accepted; an
 empty list therefore means loopback only, and any request arriving under
-another name gets a 400. Add the hostnames clients actually use — e.g.
-`["thalimage.tail1234.ts.net"]`, or the wildcard `["*.ts.net"]`. Set it
-to `["*"]` to disable the check. An entry with a scheme
-(`https://...`) or a short name the browser does not use gives "Invalid
-host header"; pin the exact MagicDNS name once it is known.
+another name gets a 400. Pin the exact MagicDNS name clients use, e.g.
+`["thalimage.tail1234.ts.net"]`. The wildcard `["*.ts.net"]` also works but
+trusts every name in the tailnet; a write still has to come from the app's
+own origin (or a configured CORS origin). Set it to `["*"]` to disable the
+Host check. An entry with a scheme (`https://...`) or a short name the
+browser does not use gives "Invalid host header"; pin the exact MagicDNS
+name once it is known.
 
 The app runs as a **single process**: scan progress and the
 one-scan-per-source guard live in its memory, so do not add
