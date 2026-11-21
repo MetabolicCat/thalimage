@@ -6,7 +6,7 @@ build-backend = "hatchling.build"
 name = "thalimage"
 version = "0.8.0"
 description = "Self-hosted image browser for AI-generated images"
-requires-python = ">=3.11"
+requires-python = ">=3.14"
 authors = [
     {name = "Arkhelyi", email = "arkhelyi@151e.ai"},
 ]
@@ -42,6 +42,9 @@ dev = [
 [project.scripts]
 thalimage = "thalimage.__main__:main"
 
+[tool.ruff]
+target-version = "py314"
+
 [tool.ruff.lint]
 extend-select = ["B"]
 
@@ -49,7 +52,7 @@ extend-select = ["B"]
 "src/thalimage/api/*.py" = ["B008"]
 
 [tool.mypy]
-python_version = "3.11"
+python_version = "3.14"
 warn_return_any = true
 warn_unused_configs = true
 disallow_untyped_defs = true

@@ -279,7 +279,7 @@ In development the frontend runs separately and proxies `/api` to the backend on
 
 ## Tech Stack
 
-- **Backend**: Python 3.11+ / FastAPI, SQLite (WAL mode)
+- **Backend**: Python 3.14+ / FastAPI, SQLite (WAL mode)
 - **Frontend**: SvelteKit (SPA mode, adapter-static)
 - **Metadata**: sd-parsers, piexif, Pillow
 - **Thumbnails**: Pillow (WebP)
