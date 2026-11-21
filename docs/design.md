@@ -246,6 +246,12 @@ variation (same prompt, another seed), and unrelated.
   are there and refuse the app. Thalimage never repairs permissions, so
   the 409 is the point where the user learns the share, not the app, has
   to be changed.
+- **Why a share refuses one file and not the next is still unexplained**
+  (#188): a file readable in one folder came back `EACCES` on `stat`
+  and `open` after a rename into another, with `777`, the same owner and
+  the same ACL as a neighbour that worked, and a metadata write (a
+  `chgrp`) cleared it. The app reports and retries; the share's
+  behaviour is the open question.
 
 ## Deployment
 
