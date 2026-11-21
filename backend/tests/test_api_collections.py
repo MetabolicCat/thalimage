@@ -202,19 +202,29 @@ def test_source_preset_counts_copies_in_one_source_once(
     assert preset["image_count"] == len(hashes)
 
 
-def test_labels_lists_each_image_with_its_tags_in_the_namespaces_asked(
+def test_labels_lists_each_image_with_the_labels_asked(
     client: TestClient, db: sqlite3.Connection
 ) -> None:
     a, b, c = (insert_image(db, ch * 64) for ch in "abc")
     cid = client.post("/api/v1/collections", json={"name": "Labelling"}).json()["id"]
     client.post(f"/api/v1/collections/{cid}/images", json={"hashes": [b, a, c]})
-    for name, hashes in (("medium:photographic", [a, b]), ("rating:sfw", [a]), ("landscape", [a, c])):
+    for name, hashes in (
+        ("medium:photographic", [a, b]),
+        ("rating:sfw", [a]),
+        ("rating:3", [a, b]),
+        ("landscape", [a, c]),
+    ):
         tid = client.post("/api/v1/tags", json={"name": name}).json()["id"]
         client.post(f"/api/v1/tags/{tid}/images", json={"hashes": hashes})
     db.execute("UPDATE images SET deleted = 1 WHERE content_hash = ?", (c,))
     db.commit()
 
-    resp = client.get(f"/api/v1/collections/{cid}/labels", params={"namespace": ["medium", "rating"]})
+    # `rating:3` is an imported star rating, not one of the vocabulary's
+    # labels, so asking for `rating:sfw` must not return it.
+    resp = client.get(
+        f"/api/v1/collections/{cid}/labels",
+        params={"label": ["medium:photographic", "rating:sfw"]},
+    )
 
     assert resp.status_code == 200
     assert resp.json() == [

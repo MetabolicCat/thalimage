@@ -129,11 +129,11 @@ def del_collection_images(
 @router.get("/{collection_id}/labels", response_model=list[ImageLabels])
 def get_collection_labels(
     collection_id: int,
-    namespace: list[str] = Query(default=[]),
+    label: list[str] = Query(default=[]),
     db: sqlite3.Connection = Depends(get_db),
 ) -> list[ImageLabels]:
-    """The collection's images with their tags in the namespaces asked
-    (`medium:…`, `rating:…`), for labelling a set by hand."""
+    """The collection's images with the labels asked (`medium:photographic`,
+    `rating:sfw`), for labelling a set by hand."""
     if get_collection(db, collection_id) is None:
         raise HTTPException(404, "Collection not found")
-    return collection_labels(db, collection_id, namespace)
+    return collection_labels(db, collection_id, label)
