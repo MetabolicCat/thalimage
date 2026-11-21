@@ -218,6 +218,40 @@ variation (same prompt, another seed), and unrelated.
   its file afterwards, in the target, so nothing is ever marked deleted
   by a move. A move that fails per file is reported and the rest still
   move, as a rename's failures are.
+- **A file that landed but cannot be read there is reported, not
+  treated as moved.** Any operation that leaves a file in a folder the
+  NAS manages can come back unreadable: the share applies its own
+  permissions to what arrives, and nothing in the app's stat-based view
+  shows it. The move reads each placed file back (one byte) and names
+  it with the reason, so the share's effect surfaces at the operation
+  rather than at the next view.
+
+## Files the app cannot read
+
+- **A copy the app cannot open is skipped, and the next copy tried.**
+  Which file an image is served from was the first location that
+  *existed*; on a share that applies its own permissions, existing and
+  readable are not the same thing, and the answer was to raise where
+  nobody expected it: an unstattable path took `/preview`, `/file` and
+  `/video` down with a traceback, and a readable copy elsewhere was
+  never reached. Opening the file and reading a byte is the test
+  now, and the failure is reported with the path and the errno, so the
+  app says what the share did instead of a 500.
+- **A refusal that may be momentary is tried once more**, after a short
+  pause: a share rewriting ACLs and an NFS client's stale handle both
+  answer EACCES and then stop. One retry is cheap and covers that; more
+  would only hide a persistent refusal.
+- **Missing and refused are different answers**: 404 when no copy is on
+  disk (the next scan settles it), 409 naming the file when the copies
+  are there and refuse the app. Thalimage never repairs permissions, so
+  the 409 is the point where the user learns the share, not the app, has
+  to be changed.
+- **Why a share refuses one file and not the next is still unexplained**
+  (#188): a file readable in one folder came back `EACCES` on `stat`
+  and `open` after a rename into another, with `777`, the same owner and
+  the same ACL as a neighbour that worked, and a metadata write (a
+  `chgrp`) cleared it. The app reports and retries; the share's
+  behaviour is the open question.
 
 ## Deployment
 

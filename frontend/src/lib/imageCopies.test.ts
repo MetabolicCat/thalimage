@@ -64,12 +64,16 @@ describe('deletionFailures', () => {
 });
 
 describe('moveFailures', () => {
-	const moved = (failed: { relative_path: string; error: string }[]) => ({
+	const moved = (
+		failed: { relative_path: string; error: string }[],
+		not_readable: { relative_path: string; error: string }[] = []
+	) => ({
 		moved: ['a.png'],
 		deleted: [],
 		sidecars: [],
 		kept_sidecars: [],
-		failed
+		failed,
+		not_readable
 	});
 
 	it('is empty when every file moved', () => {
@@ -80,5 +84,11 @@ describe('moveFailures', () => {
 		expect(moveFailures(moved([{ relative_path: 'b.jpg', error: 'Permission denied' }]))).toBe(
 			'Moved 1; these could not be moved: b.jpg (Permission denied)'
 		);
+	});
+
+	it('names files that moved but cannot be read where they landed', () => {
+		expect(
+			moveFailures(moved([], [{ relative_path: 'a.png', error: 'Permission denied (EACCES)' }]))
+		).toBe('moved, but these cannot be read where they landed: a.png (Permission denied (EACCES))');
 	});
 });

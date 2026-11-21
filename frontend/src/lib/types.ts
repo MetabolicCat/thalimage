@@ -287,13 +287,16 @@ export interface ImageDeletion {
 
 /** What moving files to another source did: `moved` took their places there,
  * `deleted` were copies the target already held, `sidecars` left the source
- * with their files, and `kept_sidecars` stayed where another file names them. */
+ * with their files, `kept_sidecars` stayed where another file names them, and
+ * `not_readable` arrived at a place the app may not open. */
 export interface SourceMove {
 	moved: string[];
 	deleted: string[];
 	sidecars: string[];
 	kept_sidecars: string[];
 	failed: { relative_path: string; error: string }[];
+	/** Moved, but the app cannot read them at the new path. */
+	not_readable: { relative_path: string; error: string }[];
 }
 
 /** What merging images did: `merged` are the images merged, one whose files

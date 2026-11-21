@@ -10,7 +10,7 @@ from PIL import Image
 
 from tests.helpers import scan_source
 from thalimage.db.engine import connect, migrate
-from thalimage.services.image_service import resolve_file_path
+from thalimage.services.file_access import find_file
 from thalimage.services.scan_service import run_scan
 
 
@@ -45,7 +45,7 @@ def test_copy_in_two_sources_always_resolves_to_a_real_file(tmp_path: Path) -> N
         for sid in order:
             run_scan(conn, sid, thumbs)
             h = _only_hash(conn)
-            path = resolve_file_path(conn, h)
+            path = find_file(conn, h).path
             assert path is not None and Path(path).is_file(), (order, path)
 
     # The image keeps one stable primary location across rescans.
@@ -74,7 +74,7 @@ def test_copy_survives_until_its_last_location_is_gone(tmp_path: Path) -> None:
     run_scan(conn, sa, thumbs)
     row = conn.execute("SELECT source_id, deleted FROM images WHERE content_hash = ?", (h,)).fetchone()
     assert tuple(row) == (sb, 0)
-    assert Path(resolve_file_path(conn, h) or "").is_file()
+    assert Path(find_file(conn, h).path or "").is_file()
 
     # Gone everywhere: soft-deleted.
     (b / "x.png").unlink()
