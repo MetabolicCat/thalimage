@@ -48,6 +48,26 @@ Because every URL is addressed by content hash, it can never mean
 something different later, so responses are cached by the browser for a
 year without revalidating.
 
+## When a file cannot be read
+
+The original is read at request time — to make a preview that does not
+exist yet, to send a GIF whole, to play a video — and it is read from the
+first of the image's copies that the app can open. Opening the file and
+reading a byte is the test, not a listing: a copy the app can see but not
+open is passed over for another copy of the same image. A refusal that
+looks momentary, such as a share rewriting its permissions or an NFS
+client's stale file handle, is tried once more first.
+
+A copy that still refuses is logged with its path and the reason
+(`Cannot read /images/…/x.png, a copy of 3f9a…: Permission denied
+(EACCES)`), and an image whose copies all refuse answers **409** naming
+the file, rather than failing with an error the log does not explain. A
+scan names the same file under **Files not indexed**, and a move reports
+a file that landed where the app cannot read it.
+
+Thalimage never changes permissions or ownership, so a share whose own
+rules refuse a file keeps refusing it until you change them there.
+
 ## Video
 
 Video is served as the original file, with range requests supported —

@@ -2,7 +2,6 @@
 
 import sqlite3
 from dataclasses import dataclass, replace
-from pathlib import Path
 from typing import Optional
 
 from pydantic import BaseModel
@@ -15,7 +14,7 @@ from thalimage.services.folders import (
     in_folder_sql,
     tagged_folder,
 )
-from thalimage.services.locations import in_source_sql, resolve_paths
+from thalimage.services.locations import in_source_sql
 from thalimage.services.near_duplicates import places
 from thalimage.services.picture_edits import (
     PossibleEdit,
@@ -625,14 +624,3 @@ def set_archived(
     conn.commit()
     return conn.total_changes - before
 
-
-def resolve_file_path(
-    conn: sqlite3.Connection, content_hash: str
-) -> Optional[str]:
-    """Resolve the full file path for an image: its primary location, or
-    another copy if that file has gone missing since the last scan.
-    None if the image is unknown or deleted."""
-    paths = resolve_paths(conn, content_hash)
-    if not paths:
-        return None
-    return next((p for p in paths if Path(p).is_file()), paths[0])

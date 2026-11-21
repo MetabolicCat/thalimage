@@ -5,12 +5,15 @@ enough to fill a screen, small enough to send over a slow link. They are
 generated on first request and cached on disk, one file per size bucket.
 """
 
+import logging
 from bisect import bisect_left
 from pathlib import Path
 
 from PIL import Image, UnidentifiedImageError
 
 from thalimage.core.webp import write_webp
+
+logger = logging.getLogger(__name__)
 
 PREVIEW_SIZES: tuple[int, ...] = (1280, 1920, 2560)
 
@@ -54,6 +57,10 @@ def generate_preview(
             opened.load()
             img = opened.copy()
     except (UnidentifiedImageError, OSError) as exc:
+        # The caller answers "no preview for this file type", so the reason
+        # itself — a file the app may not read, a format Pillow cannot open
+        # — would otherwise only exist in this traceback's cause.
+        logger.warning("Cannot generate a %dpx preview of %s: %s", size, image_path, exc)
         raise ValueError(f"Cannot generate a preview for {image_path}") from exc
 
     return write_webp(img, dest, max_size=size, quality=quality)

@@ -26,6 +26,7 @@ from thalimage.deps import (
 from thalimage.services.collection_service import resolve_scope
 from thalimage.services.elo_ranking import elo_cut
 from thalimage.services.elo_service import EloStanding, image_standings
+from thalimage.services.file_access import FileLookup, find_file
 from thalimage.services.file_changes import SourceNotWritable
 from thalimage.services.file_deletion import (
     Copy,
@@ -47,7 +48,6 @@ from thalimage.services.image_service import (
     get_image,
     listing_page,
     neighbors,
-    resolve_file_path,
     sequence,
     set_archived,
 )
@@ -224,18 +224,29 @@ def get_image_elo(
     return standings
 
 
+def readable_file(lookup: FileLookup) -> Path:
+    """The file an image is served from: the first copy the app can read.
+
+    404 when there is no copy (an unknown image, or one whose files are
+    gone), 409 when the copies are there but cannot be read — a share
+    that denies them, which is the app's to report and the user's to see,
+    not a traceback."""
+    if lookup.path is not None:
+        return Path(lookup.path)
+    if lookup.refused:
+        path, reason = lookup.refused[0]
+        raise HTTPException(409, f"Cannot read {path}: {reason}")
+    if lookup.indexed:
+        raise HTTPException(404, "File not found on disk")
+    raise HTTPException(404, "Image not found")
+
+
 @router.get("/{content_hash}/file")
 def get_image_file(
     content_hash: ContentHash,
     db: sqlite3.Connection = Depends(get_db),
 ) -> FileResponse:
-    file_path = resolve_file_path(db, content_hash)
-    if file_path is None:
-        raise HTTPException(404, "Image not found")
-    p = Path(file_path)
-    if not p.exists():
-        raise HTTPException(404, "File not found on disk")
-    return FileResponse(p, headers=IMMUTABLE)
+    return FileResponse(readable_file(find_file(db, content_hash)), headers=IMMUTABLE)
 
 
 @router.get("/{content_hash}/video")
@@ -246,19 +257,14 @@ def get_image_video(
 ) -> FileResponse:
     """The video as the viewer plays it: its playable copy when it has one
     (made at scan time for what iOS cannot play), else the original."""
-    file_path = resolve_file_path(db, content_hash)
-    if file_path is None:
-        raise HTTPException(404, "Image not found")
+    lookup = find_file(db, content_hash)
     copy = playable_copy_path(video_dir, content_hash)
     try:
         if copy.exists():
             return FileResponse(copy, media_type="video/mp4", headers=IMMUTABLE)
     except OSError:
         logger.exception("Could not check the playable copy %s", copy)
-    p = Path(file_path)
-    if not p.exists():
-        raise HTTPException(404, "File not found on disk")
-    return FileResponse(p, headers=IMMUTABLE)
+    return FileResponse(readable_file(lookup), headers=IMMUTABLE)
 
 
 @router.get("/{content_hash}/thumb")
@@ -290,12 +296,7 @@ def get_image_preview(
     preview_dir: Path = Depends(get_preview_dir),
 ) -> FileResponse:
     """Serve a display-sized WebP, generating and caching it on first request."""
-    file_path = resolve_file_path(db, content_hash)
-    if file_path is None:
-        raise HTTPException(404, "Image not found")
-    source = Path(file_path)
-    if not source.exists():
-        raise HTTPException(404, "File not found on disk")
+    source = readable_file(find_file(db, content_hash))
 
     bucket = nearest_size(size)
     try:
