@@ -17,6 +17,7 @@
 	let removing: Source | null = $state(null);
 	let keepData = $state(true);
 	let scanStatus: Record<number, string> = $state({});
+	let scanning: Record<number, boolean> = $state({});
 	let summaries: Record<number, SourceSummary> = $state({});
 	let backendVersion: string | null = $state(null);
 	let backendCommit: string | null = $state(null);
@@ -81,6 +82,7 @@
 	}
 
 	function askRemove(source: Source) {
+		if (scanning[source.id]) return;
 		keepData = true;
 		removing = source;
 	}
@@ -99,6 +101,7 @@
 	}
 
 	async function scan(id: number) {
+		scanning[id] = true;
 		scanStatus[id] = 'Starting…';
 		try {
 			await triggerScan(id);
@@ -110,16 +113,19 @@
 				} else if (p.phase === 'converting') {
 					scanStatus[id] = `Making videos playable on iOS ${p.current}/${p.total}…`;
 				} else if (p.phase === 'complete') {
+					scanning[id] = false;
 					scanStatus[id] = scanDoneMessage(p);
 					unsubscribe();
 					refresh();
 					collectionsStore.refresh();
 				} else if (p.phase === 'error') {
+					scanning[id] = false;
 					scanStatus[id] = `Error: ${p.message || 'Scan failed'}`;
 					unsubscribe();
 				}
 			});
 		} catch {
+			scanning[id] = false;
 			scanStatus[id] = 'Scan failed';
 		}
 	}
@@ -273,7 +279,12 @@
 					<div class="source-actions">
 						<button class="control control-primary" onclick={() => scan(source.id)}>Scan</button>
 						<button class="control" onclick={() => (relabelling = source.id)}>Relabel</button>
-						<button class="control control-danger" onclick={() => askRemove(source)}>Remove…</button>
+						<button
+							class="control control-danger"
+							onclick={() => askRemove(source)}
+							disabled={scanning[source.id]}
+							title={scanning[source.id] ? 'Wait for the scan to finish' : undefined}
+						>Remove…</button>
 					</div>
 				</li>
 			{/each}

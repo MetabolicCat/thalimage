@@ -91,6 +91,18 @@ def test_trigger_scan_while_running_is_409(client: TestClient, image_dir: Path) 
     assert client.post(f"/api/v1/sources/{source_id}/scan").status_code == 409
 
 
+def test_delete_source_while_scanning_is_409(client: TestClient, image_dir: Path) -> None:
+    source_id = client.post("/api/v1/sources", json={"path": str(image_dir)}).json()["id"]
+    scan_manager = client.app.dependency_overrides[get_scan_manager]()  # type: ignore[attr-defined]
+    scan_manager.start(source_id)
+
+    resp = client.delete(f"/api/v1/sources/{source_id}")
+
+    assert resp.status_code == 409
+    assert "scan" in resp.json()["detail"].lower()
+    assert [s["id"] for s in client.get("/api/v1/sources").json()] == [source_id]
+
+
 def test_failed_scan_reports_error(
     client: TestClient, image_dir: Path, monkeypatch, caplog: pytest.LogCaptureFixture
 ) -> None:

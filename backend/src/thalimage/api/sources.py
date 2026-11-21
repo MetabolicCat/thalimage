@@ -191,9 +191,13 @@ def del_source(
     keep_data: bool = True,
     db: sqlite3.Connection = Depends(get_db),
     video_dir: Path = Depends(get_video_dir),
+    scan_manager: ScanManager = Depends(get_scan_manager),
 ) -> None:
     """Remove a source. Its images found nowhere else keep their data
-    unless `keep_data` is false."""
+    unless `keep_data` is false. Refused while its scan is running: the
+    worker would write its locations and preset back afterwards."""
+    if scan_manager.is_running(source_id):
+        raise HTTPException(409, "The source is being scanned; wait for the scan to finish.")
     removed = delete_source(db, source_id, keep_data=keep_data)
     if removed is None:
         raise HTTPException(404, "Source not found")
