@@ -141,11 +141,11 @@ class ImageLabels(BaseModel):
 
 
 def collection_labels(
-    conn: sqlite3.Connection, collection_id: int, namespaces: list[str]
+    conn: sqlite3.Connection, collection_id: int, labels: list[str]
 ) -> list[ImageLabels]:
     """Each live image of a manual collection, in the order it was added,
-    with its tags named `<namespace>:<value>` in one of `namespaces`."""
-    prefixes = tuple(f"{n}:" for n in namespaces)
+    with the tags named in `labels` (the vocabulary's own values)."""
+    wanted = set(labels)
     rows = conn.execute(
         """SELECT ci.content_hash, i.filename, i.animated, t.name
            FROM collection_images ci
@@ -166,6 +166,6 @@ def collection_labels(
                 animated=bool(animated),
                 labels=[],
             )
-        if name is not None and name.startswith(prefixes):
+        if name is not None and name in wanted:
             image.labels.append(name)
     return list(out.values())

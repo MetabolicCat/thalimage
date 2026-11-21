@@ -50,8 +50,25 @@ export const VOCABULARY: Namespace[] = [
 	{ name: 'age', multiple: true, values: ['none', 'child', 'teen', 'indeterminate', 'adult', 'senior'] }
 ];
 
+/** Every label the vocabulary can apply, for asking the API. */
+export function vocabularyLabels(vocabulary: Namespace[]): string[] {
+	return vocabulary.flatMap((ns) => ns.values.map((value) => `${ns.name}:${value}`));
+}
+
 function namespaceOf(label: string): string {
 	return label.slice(0, label.indexOf(':'));
+}
+
+function valueOf(label: string): string {
+	return label.slice(label.indexOf(':') + 1);
+}
+
+/** The namespace `label` belongs to, if it is one of the vocabulary's own
+ * values. A tag sharing only the prefix (a star rating's `rating:3`, next to
+ * the vocabulary's `rating:sfw`) is not a label of that namespace. */
+function vocabularyLabel(vocabulary: Namespace[], label: string): Namespace | undefined {
+	const ns = vocabulary.find((n) => n.name === namespaceOf(label));
+	return ns && ns.values.includes(valueOf(label)) ? ns : undefined;
 }
 
 /** The tags to add and remove when `label` is clicked on an image. */
@@ -61,8 +78,10 @@ export function toggleLabel(
 	label: string
 ): { add: string[]; remove: string[] } {
 	if (current.includes(label)) return { add: [], remove: [label] };
-	const ns = vocabulary.find((n) => n.name === namespaceOf(label));
-	const sameNamespace = current.filter((l) => namespaceOf(l) === ns?.name);
+	const ns = vocabularyLabel(vocabulary, label);
+	const sameNamespace = ns
+		? current.filter((l) => vocabularyLabel(vocabulary, l)?.name === ns.name)
+		: [];
 	if (!ns || !ns.multiple) return { add: [label], remove: sameNamespace };
 	const none = `${ns.name}:none`;
 	return {
@@ -73,7 +92,9 @@ export function toggleLabel(
 
 /** The namespaces in which the image has no label yet. */
 export function missingNamespaces(vocabulary: Namespace[], labels: string[]): string[] {
-	const present = new Set(labels.map(namespaceOf));
+	const present = new Set(
+		labels.filter((l) => vocabularyLabel(vocabulary, l) !== undefined).map(namespaceOf)
+	);
 	return vocabulary.map((n) => n.name).filter((n) => !present.has(n));
 }
 

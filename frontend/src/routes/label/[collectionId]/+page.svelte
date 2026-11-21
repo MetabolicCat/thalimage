@@ -18,6 +18,7 @@
 		missingNamespaces,
 		nextUnlabelled,
 		toggleLabel,
+		vocabularyLabels,
 		type ImageLabels
 	} from '$lib/labels';
 	import type { Collection } from '$lib/types';
@@ -51,7 +52,7 @@
 		try {
 			const [c, labelled, tags] = await Promise.all([
 				getCollection(id),
-				getCollectionLabels(id, VOCABULARY.map((n) => n.name)),
+				getCollectionLabels(id, vocabularyLabels(VOCABULARY)),
 				listTags()
 			]);
 			for (const t of tags) tagIds.set(t.name, t.id);
