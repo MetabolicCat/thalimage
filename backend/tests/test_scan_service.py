@@ -1,11 +1,16 @@
 """Integration tests for the scan service."""
 
 import sqlite3
+from datetime import datetime, timezone
 from pathlib import Path
 
+import pytest
 from PIL import Image
 
-from tests.helpers import requires_ffmpeg
+from tests.helpers import insert_image, requires_ffmpeg
+from thalimage.core.metadata import ANIMATION_VERSION, EXTRACTOR_VERSION
+from thalimage.core.perceptual_hash import PERCEPTUAL_HASH_VERSION
+from thalimage.core.picture_hash import HASH_VERSION
 from thalimage.db.engine import connect, migrate
 from thalimage.services.scan_service import ScanResult, run_scan
 
@@ -565,6 +570,72 @@ def test_a_video_has_no_perceptual_hash_and_is_not_read_again(
 
     assert conn.execute("SELECT perceptual_hash FROM images").fetchone()[0] is None
     assert run_scan(conn, source_id, thumbs).skipped == 1
+    conn.close()
+
+
+def _indexed_video(conn: sqlite3.Connection, img_dir: Path, source_id: int) -> Path:
+    """Seed a video as a scan left it: unchanged, every version current."""
+    path = img_dir / "clip.mp4"
+    path.write_bytes(b"x" * 1000)
+    content_hash, file_hash = "a" * 64, "b" * 64
+    modified = datetime.fromtimestamp(path.stat().st_mtime, tz=timezone.utc).isoformat()
+    insert_image(
+        conn,
+        content_hash,
+        source_id=source_id,
+        filename=path.name,
+        format="MP4",
+        file_modified=modified,
+    )
+    conn.execute(
+        "UPDATE image_locations SET file_size = ?, file_hash = ?, hash_version = ?"
+        " WHERE source_id = ? AND relative_path = ?",
+        (path.stat().st_size, file_hash, HASH_VERSION, source_id, path.name),
+    )
+    conn.execute(
+        "UPDATE images SET perceptual_hash_version = ?, animation_version = ?"
+        " WHERE content_hash = ?",
+        (PERCEPTUAL_HASH_VERSION, ANIMATION_VERSION, content_hash),
+    )
+    conn.execute(
+        "INSERT INTO file_metadata (file_hash, content_hash, extractor_version)"
+        " VALUES (?, ?, ?)",
+        (file_hash, content_hash, EXTRACTOR_VERSION),
+    )
+    conn.commit()
+    return path
+
+
+@pytest.mark.parametrize("constant", ["PERCEPTUAL_HASH_VERSION", "ANIMATION_VERSION"])
+def test_a_version_bump_does_not_reread_a_video(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, constant: str
+) -> None:
+    conn, img_dir, source_id, thumbs = _scan_setup(tmp_path)
+    _indexed_video(conn, img_dir, source_id)
+    monkeypatch.setattr(f"thalimage.services.scan_service.{constant}", 99)
+
+    result = run_scan(conn, source_id, thumbs)
+
+    assert (result.added, result.skipped, result.errors) == (0, 1, 0)
+    assert conn.execute("SELECT deleted FROM images").fetchone()[0] == 0
+    conn.close()
+
+
+def test_a_known_video_keeps_its_location_when_it_cannot_be_read(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    conn, img_dir, source_id, thumbs = _scan_setup(tmp_path)
+    path = img_dir / "clip.mp4"
+    path.write_bytes(b"x" * 1000)
+    # As a scan left it, but the file changed since, so it must be read again.
+    insert_image(conn, "a" * 64, source_id=source_id, filename=path.name, format="MP4")
+    monkeypatch.setattr("thalimage.services.scan_service.ffmpeg_available", lambda: False)
+
+    result = run_scan(conn, source_id, thumbs)
+
+    assert result.errors == 1
+    assert conn.execute("SELECT COUNT(*) FROM image_locations").fetchone()[0] == 1
+    assert conn.execute("SELECT deleted FROM images").fetchone()[0] == 0
     conn.close()
 
 

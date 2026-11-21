@@ -1,8 +1,12 @@
 """The perceptual hash: what a picture looks like, close for near-identical
 pictures whatever their bytes."""
 
+import subprocess
+import sys
+import textwrap
 from pathlib import Path
 
+import pytest
 from PIL import Image, ImageEnhance
 
 from thalimage.core.perceptual_hash import distance, perceptual_hash
@@ -63,6 +67,36 @@ def test_half_the_bits_are_set_split_at_the_true_median(tmp_path: Path) -> None:
 
     for name in ("a.png", "b.png"):
         assert (perceptual_hash(tmp_path / name) & (2**64 - 1)).bit_count() == 32
+
+
+@pytest.mark.skipif(not sys.platform.startswith("linux"), reason="reads /proc/self/status")
+@pytest.mark.parametrize("size", [(800, 12000), (12000, 800)])
+def test_a_tall_or_wide_picture_needs_no_full_size_square(
+    tmp_path: Path, size: tuple[int, int]
+) -> None:
+    """An 800x12000 picture used to ask for a 12000x12000 RGBA square."""
+    path = tmp_path / "strip.png"
+    Image.new("RGB", size, "white").save(path)
+    # A subprocess for a clean peak; VmHWM is not inherited, unlike ru_maxrss.
+    script = textwrap.dedent(
+        f"""
+        from pathlib import Path
+        from thalimage.core.perceptual_hash import perceptual_hash
+
+        def status(field: str) -> int:
+            for line in open("/proc/self/status"):
+                if line.startswith(field):
+                    return int(line.split()[1])
+            raise AssertionError(field)
+
+        before = status("VmRSS")
+        perceptual_hash(Path({str(path)!r}))
+        print(status("VmHWM") - before)
+        """
+    )
+    run = subprocess.run([sys.executable, "-c", script], capture_output=True, text=True, check=True)
+
+    assert int(run.stdout) < 100 * 1024  # KiB
 
 
 def test_a_picture_framed_by_white_borders_is_the_same_picture(tmp_path: Path) -> None:

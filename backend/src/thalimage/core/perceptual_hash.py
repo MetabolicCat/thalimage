@@ -6,7 +6,9 @@ half the bits are set (fewer only where frequencies tie at the median),
 so two hashes nearly always differ by an even count of bits.
 A picture that is not square is centred on a white square first, rather
 than stretched: measured on a library, that held edits as close with a
-quarter of the unrelated pictures coming as near (#158).
+quarter of the unrelated pictures coming as near (#158). The picture is
+shrunk to a bounded long edge before it is padded, so the square never
+follows the picture's own long edge.
 Resizing, re-encoding and colour changes move few bits; cropping moves
 more the more is cut. Unlike the picture hash, it decodes the picture:
 decoders disagreeing on a few pixels shift it by a bit at most.
@@ -19,9 +21,14 @@ from pathlib import Path
 from PIL import Image
 
 # Raised when the hash changes, so the next scan computes it again.
-PERCEPTUAL_HASH_VERSION = 3
+# 4: shrink before padding, so a tall or wide picture no longer needs a
+#    square whose side is its long edge.
+PERCEPTUAL_HASH_VERSION = 4
 
 _SIZE = 32  # the side of the greyscale picture transformed
+_LONG_EDGE = 1024  # the picture is shrunk to this before it is padded
+# Modes whose resize gives the same pixels as converting to RGBA first.
+_RESIZE_BEFORE_ALPHA = {"RGB", "RGBA", "L", "LA"}
 _KEPT = 8  # the lowest frequencies kept, per axis: 64 bits
 BITS = _KEPT * _KEPT  # the length of a hash
 
@@ -35,7 +42,18 @@ def perceptual_hash(path: Path) -> int:
     """The picture's perceptual hash, as a signed 64-bit integer (what
     SQLite stores). Transparent areas and the padding count as white."""
     with Image.open(path) as img:
-        rgba = img.convert("RGBA")
+        # Shrink first: padding at the picture's own long edge would allocate
+        # that edge's square (an 800x12000 picture asked for 12000²).
+        if img.mode in _RESIZE_BEFORE_ALPHA:
+            # In the mode the file already has: converting a tall picture to
+            # RGBA makes a full-size copy before the shrink can happen.
+            img.thumbnail((_LONG_EDGE, _LONG_EDGE), Image.Resampling.LANCZOS)
+            rgba = img.convert("RGBA")
+        else:
+            # Palettes would resize as raw channel values, so convert first;
+            # the shrink still bounds the square.
+            rgba = img.convert("RGBA")
+            rgba.thumbnail((_LONG_EDGE, _LONG_EDGE), Image.Resampling.LANCZOS)
     side = max(rgba.size)
     flat = Image.new("RGBA", (side, side), "white")
     flat.alpha_composite(rgba, ((side - rgba.width) // 2, (side - rgba.height) // 2))
