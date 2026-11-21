@@ -16,7 +16,7 @@ RUN pnpm build
 
 
 # Stage 2: runtime
-FROM python:3.11-slim AS runtime
+FROM python:3.14-slim AS runtime
 
 # ffmpeg/ffprobe back video thumbnails and probing (core/video.py);
 # gosu drops privileges in the entrypoint.

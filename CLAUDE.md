@@ -4,7 +4,7 @@ Self-hosted image browser/manager for AI-generated images.
 
 ## Architecture
 
-- **Backend**: Python 3.11+ / FastAPI, SQLite (WAL mode)
+- **Backend**: Python 3.14+ / FastAPI, SQLite (WAL mode)
 - **Frontend**: SvelteKit (SPA mode with adapter-static)
 - **Monorepo**: `backend/` and `frontend/` directories
 
