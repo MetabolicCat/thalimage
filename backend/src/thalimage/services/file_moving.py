@@ -8,6 +8,7 @@ is not. Sidecars follow their file.
 """
 
 import errno
+import logging
 import os
 import shutil
 import sqlite3
@@ -15,10 +16,13 @@ from dataclasses import dataclass, field
 from pathlib import Path, PurePath
 
 from thalimage.core.sidecars import claimed, digest, renamed_for, sidecars_of
+from thalimage.services.file_access import describe, read_error
 from thalimage.services.file_changes import change_file, record_change, writable_root
 from thalimage.services.file_deletion import UnknownCopy, remove_copy
 from thalimage.services.locations import sync_images
 from thalimage.services.scan_service import unchanged_since_scan
+
+logger = logging.getLogger(__name__)
 
 
 class MoveRefused(Exception):
@@ -33,6 +37,9 @@ class MoveResult:
     sidecars: list[str] = field(default_factory=list)  # moved along
     kept_sidecars: list[str] = field(default_factory=list)  # left behind
     failed: list[tuple[int, str, str]] = field(default_factory=list)  # (source, path, error)
+    # Moved, but the app cannot read them there: a share the new folder's
+    # permissions refuse, which the move itself cannot see coming.
+    not_readable: list[tuple[int, str, str]] = field(default_factory=list)
 
 
 @dataclass
@@ -169,9 +176,24 @@ def _move(conn: sqlite3.Connection, t: _Copy, result: MoveResult) -> None:
             return
         _move_location(conn, t)
         result.moved.append(t.path)
+        _check_readable(t, target, result)
     for sidecar in sidecars:
         if not claimed(sidecar):
             _follow(conn, t, media, sidecar, result)
+
+
+def _check_readable(t: _Copy, target: Path, result: MoveResult) -> None:
+    """Report a file that arrived but that the app may not read: a share
+    can apply its own permissions to what lands in it, and nothing else
+    notices until someone opens the image."""
+    error = read_error(str(target))
+    if error is None:
+        return
+    reason = describe(error)
+    logger.warning(
+        "Moved %s to %s, but cannot read it there: %s", t.root / t.path, target, reason
+    )
+    result.not_readable.append((t.source_id, t.path, reason))
 
 
 def _make_parent(target: Path) -> str | None:

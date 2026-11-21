@@ -62,6 +62,7 @@ def test_a_file_moves_to_the_other_source(
         "sidecars": [],
         "kept_sidecars": [],
         "failed": [],
+        "not_readable": [],
     }
     assert not (image_dir / "a.png").exists()
     assert (target / "a.png").exists()
@@ -477,3 +478,48 @@ def test_the_moved_location_does_not_look_changed(
     ).fetchone()
     assert tuple(after) == tuple(before)
     assert client.get(f"/api/v1/images/{image['content_hash']}").status_code == 200
+
+
+def test_a_file_the_app_cannot_read_after_the_move_is_reported(
+    client: TestClient,
+    db: sqlite3.Connection,
+    image_dir: Path,
+    two_sources: tuple[int, int, Path],
+    monkeypatch: pytest.MonkeyPatch,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """A share can hand back a file the app may not open: the move happens,
+    and the response says the file cannot be read there."""
+    from thalimage.services import file_access
+
+    source_id, to_source_id, target = two_sources
+    moved = str(target / "a.png")
+    original = file_access.read_error
+
+    def read_error(path: str) -> OSError | None:
+        if str(path) == moved:
+            return PermissionError(errno.EACCES, "Permission denied", path)
+        return original(path)
+
+    # Patch where it is used: the service holds the name itself.
+    monkeypatch.setattr("thalimage.services.file_moving.read_error", read_error)
+
+    resp = _move(client, source_id, to_source_id, "a.png")
+
+    assert resp.status_code == 200
+    assert resp.json()["moved"] == ["a.png"]
+    [unreadable] = resp.json()["not_readable"]
+    assert unreadable["relative_path"] == "a.png"
+    assert "Permission denied" in unreadable["error"]
+    assert (target / "a.png").exists() and not (image_dir / "a.png").exists()
+    assert any("cannot read" in r.getMessage().lower() for r in caplog.records)
+
+
+def test_a_file_the_app_can_read_after_the_move_is_not_reported(
+    client: TestClient, two_sources: tuple[int, int, Path]
+) -> None:
+    source_id, to_source_id, target = two_sources
+
+    resp = _move(client, source_id, to_source_id, "a.png")
+
+    assert resp.json()["not_readable"] == []

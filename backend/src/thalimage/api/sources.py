@@ -93,6 +93,8 @@ class MovedCopies(BaseModel):
     sidecars: list[str]
     kept_sidecars: list[str]
     failed: list[DeleteFailure]
+    # Moved, but the app cannot read them at the new path.
+    not_readable: list[DeleteFailure]
 
 
 class SourceResponse(BaseModel):
@@ -249,6 +251,9 @@ def move_source_copies(
         sidecars=result.sidecars,
         kept_sidecars=result.kept_sidecars,
         failed=[DeleteFailure(relative_path=p, error=e) for _, p, e in result.failed],
+        not_readable=[
+            DeleteFailure(relative_path=p, error=e) for _, p, e in result.not_readable
+        ],
     )
 
 

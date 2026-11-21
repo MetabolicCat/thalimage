@@ -337,7 +337,9 @@ whose name is taken in the target is deleted when it says the same as
 the file there, kept as an orphan otherwise.
 
 A move is one change per file: a file that cannot be moved is named
-with the reason and the others still move. The image is the same
+with the reason and the others still move. So is a file that moved but
+that Thalimage cannot read where it landed, which a share can cause by
+applying its own permissions to what arrives. The image is the same
 wherever it lies, so its tags, scores, votes and collections are
 unaffected; only the collection preset it shows in changes. The
 index is updated with the move, so no rescan is needed, and each move

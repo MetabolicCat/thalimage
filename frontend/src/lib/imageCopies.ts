@@ -29,12 +29,21 @@ export function deletionFailures(result: ImageDeletion): string {
 	);
 }
 
-/** The files a move to another source left behind, and why; empty when every
- * file moved. */
+/** What a move to another source could not do, file by file; empty when every
+ * file moved and can be read where it landed. */
 export function moveFailures(result: SourceMove): string {
-	if (result.failed.length === 0) return '';
-	return (
-		`Moved ${result.moved.length + result.deleted.length}; these could not be moved: ` +
-		result.failed.map((f) => `${f.relative_path} (${f.error})`).join(', ')
-	);
+	const parts: string[] = [];
+	if (result.failed.length > 0) {
+		parts.push(
+			`Moved ${result.moved.length + result.deleted.length}; these could not be moved: ` +
+				result.failed.map((f) => `${f.relative_path} (${f.error})`).join(', ')
+		);
+	}
+	if (result.not_readable.length > 0) {
+		parts.push(
+			'moved, but these cannot be read where they landed: ' +
+				result.not_readable.map((f) => `${f.relative_path} (${f.error})`).join(', ')
+		);
+	}
+	return parts.join('; ');
 }
