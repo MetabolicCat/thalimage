@@ -96,9 +96,10 @@ services:
       # (e.g. Europe/Paris). Log timestamps follow it too.
       - TZ=${TZ:-UTC}
       # Host-header allowlist. Requests arriving under any other name get
-      # a 400. The wildcard covers the MagicDNS name without pinning the
-      # tailnet: ["thalimage.tail1234.ts.net"] is the exact form.
-      - THALIMAGE_ALLOWED_HOSTS=${THALIMAGE_ALLOWED_HOSTS:-["*.ts.net"]}
+      # a 400. Pin the app's MagicDNS name; replace tail1234 with your
+      # tailnet. The wildcard ["*.ts.net"] also works but trusts every name
+      # in the tailnet.
+      - THALIMAGE_ALLOWED_HOSTS=${THALIMAGE_ALLOWED_HOSTS:-["thalimage.tail1234.ts.net"]}
       # Match the owner of the image files on the host.
       - PUID=${PUID:-1000}
       - PGID=${PGID:-1000}

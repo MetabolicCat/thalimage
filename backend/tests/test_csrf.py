@@ -60,7 +60,7 @@ def _app_with(monkeypatch: pytest.MonkeyPatch, **settings: object) -> TestClient
     )
 
 
-def test_origins_of_allowed_hosts_pass(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_same_origin_behind_tailscale_passes(monkeypatch: pytest.MonkeyPatch) -> None:
     """Behind tailscale serve the page is https://box.tail1234.ts.net."""
     client = _app_with(monkeypatch, allowed_hosts=["*.ts.net"])
     ok = client.delete(
@@ -73,6 +73,40 @@ def test_origins_of_allowed_hosts_pass(monkeypatch: pytest.MonkeyPatch) -> None:
         headers={"host": "box.tail1234.ts.net", "origin": "https://evil.example"},
     )
     assert other.status_code == 403
+
+
+def test_a_loopback_origin_on_another_port_is_refused(monkeypatch: pytest.MonkeyPatch) -> None:
+    client = _app_with(monkeypatch)
+    resp = client.post(
+        "/api/v1/tags",
+        json={"name": "x"},
+        headers={"host": "127.0.0.1:8000", "origin": "http://127.0.0.1:3000"},
+    )
+    assert resp.status_code == 403
+
+
+def test_another_name_in_the_wildcard_hosts_is_refused(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    client = _app_with(monkeypatch, allowed_hosts=["*.ts.net"])
+    resp = client.post(
+        "/api/v1/tags",
+        json={"name": "x"},
+        headers={"host": "thalimage.tail123.ts.net", "origin": "https://other.tailxyz.ts.net"},
+    )
+    assert resp.status_code == 403
+
+
+def test_a_wildcard_host_list_does_not_allow_another_origin(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    client = _app_with(monkeypatch, allowed_hosts=["*"])
+    resp = client.post(
+        "/api/v1/tags",
+        json={"name": "x"},
+        headers={"host": "box.example", "origin": "https://other.example"},
+    )
+    assert resp.status_code == 403
 
 
 def test_configured_cors_origins_pass(monkeypatch: pytest.MonkeyPatch) -> None:

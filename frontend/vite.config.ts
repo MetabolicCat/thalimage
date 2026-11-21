@@ -18,7 +18,10 @@ function buildCommit(): string | null {
 const apiProxy = {
 	'/api': {
 		target: 'http://127.0.0.1:8000',
-		changeOrigin: true
+		changeOrigin: true,
+		// The write guard refuses a write from another origin; the dev and
+		// preview servers are one. Make the proxied request look same-origin.
+		headers: { origin: 'http://127.0.0.1:8000' }
 	}
 };
 

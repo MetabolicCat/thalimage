@@ -18,6 +18,7 @@ from thalimage.compression import TextCompression
 from thalimage.config import get_settings
 from thalimage.csrf import CrossSiteWriteGuard
 from thalimage.db.engine import connect, migrate
+from thalimage.security_headers import SecurityHeaders
 from thalimage.services.db_backup import BackupScheduler
 from thalimage.services.near_duplicates import keep_on_disk
 from thalimage.services.scan_manager import ScanManager
@@ -110,12 +111,16 @@ def create_app() -> FastAPI:
         )
 
     # Added last, so it runs first: a foreign page's write is refused before
-    # CORS or routing see it (SEC-002).
+    # CORS or routing see it (SEC-002). Only the request's own origin, or an
+    # explicit CORS origin, may write.
     app.add_middleware(
         CrossSiteWriteGuard,
-        allowed_hosts=allowed_hosts,
         allowed_origins=cors_origins,
     )
+
+    # Outside the write guard too, so a refused write carries the framing
+    # headers as well.
+    app.add_middleware(SecurityHeaders)
 
     app.include_router(backups.router, prefix="/api/v1")
     app.include_router(sources.router, prefix="/api/v1")
