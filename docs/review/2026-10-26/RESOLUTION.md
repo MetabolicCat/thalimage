@@ -11,7 +11,7 @@ finding's fix), **won't fix** (with the reason), or **open**.
 |---|---|---|---|---|
 | [SEC-001](security.md#sec-001-unvalidated-hashes-in-post-imagesdelete-unlink-arbitrary-mp4-files) | medium | Unvalidated hashes in POST /images/delete unlink arbitrary *.mp4 files | fixed | [#181](https://github.com/RKI027/thalimage/pull/181): body hashes use the `ContentHash` pattern; a test covers a file outside `video_dir` |
 | [SEC-002](security.md#sec-002-settings-close-link-renders-returnto-unchecked-javascript-xss) | medium | Settings "Close" link renders returnTo unchecked (javascript: XSS) | fixed | [#181](https://github.com/RKI027/thalimage/pull/181): `returnToHref` accepts only on-origin single-slash paths; unit-tested |
-| [SEC-003](security.md#sec-003-ci-downloads-and-runs-unpinned-unverified-ffmpeg-builds) | medium | CI downloads and runs unpinned, unverified ffmpeg builds | open |  |
+| [SEC-003](security.md#sec-003-ci-downloads-and-runs-unpinned-unverified-ffmpeg-builds) | medium | CI downloads and runs unpinned, unverified ffmpeg builds | fixed | [#192](https://github.com/RKI027/thalimage/pull/192): the job uses the pinned runner's apt ffmpeg, `permissions: contents: read`, and `persist-credentials: false`; the nightly download is gone |
 | [SEC-004](security.md#sec-004-no-frame-ancestors--x-frame-options-clickjacking-bypasses-the-write-guard) | low | No frame-ancestors / X-Frame-Options: clickjacking bypasses the write guard | open |  |
 | [SEC-005](security.md#sec-005-write-guards-fallback-trusts-any-loopback-port-and-every-wildcard-matched-host) | low | Write guard's fallback trusts any loopback port and every wildcard-matched host | open |  |
 | [SEC-006](security.md#sec-006-dir-localsel-asks-to-permanently-trust-an-eval-that-loads-mutable-code) | low | .dir-locals.el asks to permanently trust an eval that loads mutable code | open |  |
@@ -48,7 +48,7 @@ finding's fix), **won't fix** (with the reason), or **open**.
 | [DOC-012](docs-consistency.md#doc-012-fix-the-thalimage-devel-commentary-for-the-frontend-command) | low | Fix the `thalimage-dev.el` commentary for the frontend command | open |  |
 | [TST-001](testing.md#tst-001-make-the-csrf-allowed-hosts-test-reach-the-allowed-hosts-rule) | medium | Make the CSRF allowed-hosts test reach the allowed-hosts rule | open |  |
 | [TST-002](testing.md#tst-002-test-the-viewer-pages-navigation-and-destructive-action-logic) | medium | Test the viewer page's navigation and destructive-action logic | open |  |
-| [TST-003](testing.md#tst-003-run-the-backend-tests-on-the-deployed-python-and-ffmpeg) | medium | Run the backend tests on the deployed Python and ffmpeg | open |  |
+| [TST-003](testing.md#tst-003-run-the-backend-tests-on-the-deployed-python-and-ffmpeg) | medium | Run the backend tests on the deployed Python and ffmpeg | fixed | [#189](https://github.com/RKI027/thalimage/pull/189) + [#192](https://github.com/RKI027/thalimage/pull/192): CI and the image both use 3.14, and the tests use a packaged ffmpeg rather than a nightly. Stated limit: Ubuntu 24.04 ships ffmpeg 6.1, Debian trixie 7.1 |
 | [TST-004](testing.md#tst-004-cover-rename-and-delete-failures-after-the-pre-checks-pass) | medium | Cover rename and delete failures after the pre-checks pass | open |  |
 | [TST-005](testing.md#tst-005-exercise-the-real-request-dependencies-at-least-once) | low | Exercise the real request dependencies at least once | open |  |
 | [TST-006](testing.md#tst-006-measure-coverage-in-ci-and-for-the-frontend) | low | Measure coverage in CI, and for the frontend | open |  |
